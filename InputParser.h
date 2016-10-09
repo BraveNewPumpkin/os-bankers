@@ -22,7 +22,7 @@ private:
   int parseNumResources();
   int parseNumProcesses();
   unique_ptr<vector<int> > parseInstancesOfResources(const int& num_resources);
-  //vector<pair<int,int> > parseDemands();
+  unique_ptr<vector<vector<int> > > parseDemands();
   //vector<auto_ptr<Process> > parseProcesses();
   //auto_ptr<Process> parseProcess();
 
