@@ -5,6 +5,7 @@
 #include <iostream>
 #include <regex> //for parsing and capturing intput
 #include <fstream> //for opening & reading file
+#include <vector>
 #include <memory> //smart pointers plz
 #include <string>
 #include <unistd.h> //for unix things

@@ -8,6 +8,7 @@
 #include <fstream> //for opening & reading file
 #include <regex> //for parsing and capturing intput
 #include <string>
+#include <map>
 
 using namespace std;
 
@@ -22,9 +23,9 @@ private:
   int parseNumResources();
   int parseNumProcesses();
   unique_ptr<vector<int> > parseInstancesOfResources(const int& num_resources);
-  unique_ptr<vector<vector<int> > > parseDemands();
-  //vector<auto_ptr<Process> > parseProcesses();
-  //auto_ptr<Process> parseProcess();
+  unique_ptr<vector<vector<int> > > parseDemands(const int& num_resources, const int& num_processes);
+  unique_ptr<vector<unique_ptr<Process> > > parseProcesses(const int& num_processes);
+  unique_ptr<Process> parseProcess();
 
 public:
   InputParser(ifstream &input): input(input) {};
