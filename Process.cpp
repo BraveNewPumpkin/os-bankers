@@ -22,11 +22,11 @@ void Process::useresources(const unsigned int &ticks) {
 //TODO
 }
 
-void Process::request(unique_ptr<vector<const unsigned int> >& requested_resources) {
+void Process::request(unique_ptr<vector<unsigned int> >& requested_resources) {
 //TODO
 }
 
-void Process::release(unique_ptr<vector<const unsigned int> >& requested_resources) {
+void Process::release(unique_ptr<vector<unsigned int> >& requested_resources) {
 //TODO
 }
 
@@ -51,7 +51,7 @@ void Process::pushInstruction(Instruction instruction, const unsigned int& ticks
   instructions.push_back(delegate);
 }
 
-void Process::pushInstruction(Instruction instruction, unique_ptr<vector<const unsigned int> >& requested_resources) {
+void Process::pushInstruction(Instruction instruction, unique_ptr<vector<unsigned int> >& requested_resources) {
   function<void()> delegate;
   switch(instruction){
     case Instruction::request:

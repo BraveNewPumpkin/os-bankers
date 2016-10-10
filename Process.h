@@ -20,8 +20,8 @@ private:
 
   void calculate(const unsigned int& ticks);
   void useresources(const unsigned int& ticks);
-  void request(unique_ptr<vector<const unsigned int> >& requested_resources);
-  void release(unique_ptr<vector<const unsigned int> >& requested_resources);
+  void request(unique_ptr<vector<unsigned int> >& requested_resources);
+  void release(unique_ptr<vector<unsigned int> >& requested_resources);
 public:
   void run();
 
@@ -29,7 +29,7 @@ public:
   //typedef void (Process::*calculate)(const unsigned int&);
 
   void pushInstruction(Instruction instruction, const unsigned int& ticks);
-  void pushInstruction(Instruction instruction, unique_ptr<vector<const unsigned int> >& requested_resources);
+  void pushInstruction(Instruction instruction, unique_ptr<vector<unsigned int> >& requested_resources);
 
   unsigned int getPid() const;
   void setPid(const unsigned int pid);

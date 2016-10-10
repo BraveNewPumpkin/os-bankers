@@ -62,8 +62,8 @@ unique_ptr<Process> InputParser::parseProcess() {
   unique_ptr<Process> process = make_unique <Process>();
   regex calculate_parser("calculate\\((\\d+)\\)");
   regex useresources_parser("useresources\\((\\d+)\\)");
-  regex request_parser("request\\((?:(\\d+),?)+\\)");
-  regex release_parser("release\\((?:(\\d+),?)+\\)");
+  regex request_parser("request\\(((?:\\d+,?)+)\\)");
+  regex release_parser("release\\(((?:\\d+,?)+)\\)");
   regex end_parser("end");
   string line;
   bool at_end = false;
@@ -83,21 +83,21 @@ unique_ptr<Process> InputParser::parseProcess() {
       const unsigned int duration = stoul(match.str(1));
       process->pushInstruction(Process::Instruction::useresources, duration);
     }else if(regex_search(line, match, request_parser)){
-      auto requested_resources = make_unique<vector<const unsigned int> >();
-      const string& submatch = *(match.begin()+1);
-      //TODO fix
-//      for_each(match.begin()+1, match.end(), [&requested_resources](const string& sub_match){
-//        unsigned int resource_instances = stoul(sub_match);
-//        requested_resources->push_back(resource_instances);
-//      });
-//      process->pushInstruction(Process::Instruction::request, requested_resources);
+      auto requested_resources = make_unique<vector<unsigned int> >();
+      vector<string> tokens = split(match.str(1),',');
+      for(const string& token: tokens){
+        const unsigned int num_instances = stoul(token);
+        requested_resources->push_back(num_instances);
+      }
+      process->pushInstruction(Process::Instruction::request, requested_resources);
     }else if(regex_search(line, match, release_parser)){
-      auto requested_resources = make_unique<vector<const unsigned int> >();
-//      for_each(match.begin()+1, match.end(), [&requested_resources](const string& sub_match){
-//        unsigned int resource_instances = stoul(sub_match);
-//        requested_resources->push_back(resource_instances);
-//      });
-//      process->pushInstruction(Process::Instruction::release, requested_resources);
+      auto requested_resources = make_unique<vector<unsigned int> >();
+      vector<string> tokens = split(match.str(1),',');
+      for(const string& token: tokens){
+        const unsigned int num_instances = stoul(token);
+        requested_resources->push_back(num_instances);
+      }
+      process->pushInstruction(Process::Instruction::request, requested_resources);
     }else if(regex_search(line, match, end_parser)){
       at_end = true;
     }
@@ -113,4 +113,19 @@ unsigned int InputParser::matchBareNum(const string& line) {
   }else{
     throw runtime_error("failed to match number on line: \"" + line + '"' );
   }
+}
+
+void InputParser::split(const string &s, char delim, vector<string> &elems) {
+  stringstream ss;
+  ss.str(s);
+  string item;
+  while (getline(ss, item, delim)) {
+    elems.push_back(item);
+  }
+}
+
+vector<string> InputParser::split(const string &s, char delim) {
+  vector<string> elems;
+  split(s, delim, elems);
+  return elems;
 }
