@@ -7,6 +7,7 @@
 
 #include <fstream> //for opening & reading file
 #include <regex> //for parsing and capturing intput
+#include <array>
 #include <string>
 
 #include "Process.h"

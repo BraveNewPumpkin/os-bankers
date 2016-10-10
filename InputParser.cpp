@@ -59,9 +59,50 @@ unique_ptr<vector<unique_ptr<Process> > > InputParser::parseProcesses(const unsi
 }
 
 unique_ptr<Process> InputParser::parseProcess() {
-  //TODO
   unique_ptr<Process> process = make_unique <Process>();
-  process->pushInstruction<const unsigned int&>(Process::Instruction::calculate, 2);
+  regex calculate_parser("calculate\\((\\d+)\\)");
+  regex useresources_parser("useresources\\((\\d+)\\)");
+  regex request_parser("request\\((?:(\\d+),?)+\\)");
+  regex release_parser("release\\((?:(\\d+),?)+\\)");
+  regex end_parser("end");
+  string line;
+  bool at_end = false;
+  //throw away process label
+  getline(input, line);
+  //get deadline and computation time
+  getline(input, line);
+  process->setDeadline(matchBareNum(line));
+  getline(input, line);
+  process->setProcessingTime(matchBareNum(line));
+  //parse all instructions
+  while(getline(input, line) && !at_end){
+    if(regex_search(line, match, calculate_parser)){
+      const unsigned int duration = stoul(match.str(1));
+      process->pushInstruction(Process::Instruction::calculate, duration);
+    }else if(regex_search(line, match, useresources_parser)){
+      const unsigned int duration = stoul(match.str(1));
+      process->pushInstruction(Process::Instruction::useresources, duration);
+    }else if(regex_search(line, match, request_parser)){
+      auto requested_resources = make_unique<vector<const unsigned int> >();
+      const string& submatch = *(match.begin()+1);
+      //TODO fix
+//      for_each(match.begin()+1, match.end(), [&requested_resources](const string& sub_match){
+//        unsigned int resource_instances = stoul(sub_match);
+//        requested_resources->push_back(resource_instances);
+//      });
+//      process->pushInstruction(Process::Instruction::request, requested_resources);
+    }else if(regex_search(line, match, release_parser)){
+      auto requested_resources = make_unique<vector<const unsigned int> >();
+//      for_each(match.begin()+1, match.end(), [&requested_resources](const string& sub_match){
+//        unsigned int resource_instances = stoul(sub_match);
+//        requested_resources->push_back(resource_instances);
+//      });
+//      process->pushInstruction(Process::Instruction::release, requested_resources);
+    }else if(regex_search(line, match, end_parser)){
+      at_end = true;
+    }
+  }
+  process->pushInstruction(Process::Instruction::calculate, 2);
   return process;
 }
 
