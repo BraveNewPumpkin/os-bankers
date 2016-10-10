@@ -3,5 +3,5 @@ project(test)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
-set(SOURCE_FILES main.cpp InputParser.cpp)
+set(SOURCE_FILES main.cpp InputParser.cpp Process.cpp)
 add_executable(os_bankers ${SOURCE_FILES})

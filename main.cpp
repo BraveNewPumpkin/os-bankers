@@ -43,12 +43,33 @@ int main(int argc, char* argv[]){
       string message = "failed to open input file: \"" + inpute_filepath + "\"";
       throw runtime_error(message);
     }
-    //parse file
     // Bank bank;
+    //parse file
     InputParser input_parser(input_stream);
     input_parser.parseInput();
     //explicitly close file before forking
     input_stream.close();
+    /*
+    //create to_process pipes
+    //create from_process pipes
+    //run processes
+    foreach(unique_ptr<Process>& Process: processes){
+      process.run();
+      close read end of write pipe and write end of read pipe
+    }
+    bool all_done = false;
+    unsigned int clock = 0;
+    unique_ptr<Process> previous_process;
+    int passed_deadline_index = -1;
+    while(!all_done){
+      pick next process (not = previous_process, by deadline, then computation time left)
+      write to pipe
+      read from pipe
+      add time to clock
+      check deadlines & report any newly passed ones
+      check if all procs report done
+    }
+     */
   }catch (const regex_error& e){
     cerr << "unhandled std::regex_error caught in main: " << e.what() << " code: " << e.code()<< endl;
     return EXIT_FAILURE;

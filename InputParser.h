@@ -8,23 +8,22 @@
 #include <fstream> //for opening & reading file
 #include <regex> //for parsing and capturing intput
 #include <string>
-#include <map>
+
+#include "Process.h"
 
 using namespace std;
 
-//forward declarations
-class Process;
 
 class InputParser {
 private:
   ifstream& input;
   smatch match; //holds matches if any found
-  int matchBareNum(const string& line);
-  int parseNumResources();
-  int parseNumProcesses();
-  unique_ptr<vector<int> > parseInstancesOfResources(const int& num_resources);
-  unique_ptr<vector<vector<int> > > parseDemands(const int& num_resources, const int& num_processes);
-  unique_ptr<vector<unique_ptr<Process> > > parseProcesses(const int& num_processes);
+  unsigned int matchBareNum(const string& line);
+  unsigned int parseNumResources();
+  unsigned int parseNumProcesses();
+  unique_ptr<vector<unsigned int> > parseInstancesOfResources(const unsigned int& num_resources);
+  unique_ptr<vector<vector<unsigned int> > > parseDemands(const unsigned int& num_resources, const unsigned int& num_processes);
+  unique_ptr<vector<unique_ptr<Process> > > parseProcesses(const unsigned int& num_processes);
   unique_ptr<Process> parseProcess();
 
 public:
