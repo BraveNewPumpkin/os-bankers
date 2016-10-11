@@ -8,11 +8,18 @@
 #include <vector>
 #include <functional>
 #include <utility>
+#include <memory>
+#include <cstring>
+#include <cerrno>
+#include <unistd.h>
+
+#include "InterCom.h"
 
 using namespace std;
 
 class Process {
 private:
+  InterCom inter_com;
   unsigned int pid;
   unsigned int deadline;
   unsigned int processing_time;
@@ -23,7 +30,7 @@ private:
   void request(unique_ptr<vector<unsigned int> >& requested_resources);
   void release(unique_ptr<vector<unsigned int> >& requested_resources);
 public:
-  void run();
+  int run();
 
   enum class Instruction {calculate, useresources, request, release};
   //typedef void (Process::*calculate)(const unsigned int&);

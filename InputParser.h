@@ -12,6 +12,7 @@
 #include <sstream>
 
 #include "Process.h"
+#include "Bank.h"
 
 using namespace std;
 
@@ -32,7 +33,7 @@ private:
 
 public:
   InputParser(ifstream &input): input(input) {};
-  void parseInput();
+  void parseInput(unique_ptr<Bank>& bank, unique_ptr<vector<unique_ptr<Process> > >& processes);
 
 };
 

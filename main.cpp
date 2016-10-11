@@ -43,22 +43,23 @@ int main(int argc, char* argv[]){
       string message = "failed to open input file: \"" + inpute_filepath + "\"";
       throw runtime_error(message);
     }
-    // Bank bank;
+    unique_ptr<Bank> bank;
+    unique_ptr<vector<unique_ptr<Process> > > processes;
     //parse file
     InputParser input_parser(input_stream);
-    input_parser.parseInput();
+    input_parser.parseInput(bank, processes);
     //explicitly close file before forking
     input_stream.close();
-    /*
-    //create to_process pipes
-    //create from_process pipes
     //run processes
-    foreach(unique_ptr<Process>& Process: processes){
-      process.run();
-      close read end of write pipe and write end of read pipe
+    for(unique_ptr<Process>& process: *processes){
+      if(process->run() == 0){
+        //am child so exit loop
+        break;
+      }
     }
     bool all_done = false;
     unsigned int clock = 0;
+    /*
     unique_ptr<Process> previous_process;
     int passed_deadline_index = -1;
     while(!all_done){
@@ -82,3 +83,4 @@ int main(int argc, char* argv[]){
   }
   return EXIT_SUCCESS;
 }
+

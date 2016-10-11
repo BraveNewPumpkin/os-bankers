@@ -4,14 +4,21 @@
 
 #include "Process.h"
 
-void Process::run() {
-  //pid = fork
-  //if parent store pid and return, else {
-  //declare task;
-  //while(task = tasksQueue.pop){
-  //read from pipe (wait)
-  //do task: std::invoke(this, function_ref, args...);
-  //}
+int Process::run() {
+  pid = fork();
+  if(pid == -1){
+    throw runtime_error("failed to fork: " + strerror(errno));
+  }
+  if(pid != 0){
+    inter_com.registerAsParent();
+  }else{
+    inter_com.registerAsChild();
+    for(function<void()> instruction: instructions){
+      //read from pipe (wait)
+      //do task: std::invoke(this, function_ref, args...);
+    }
+  }
+  return pid;
 }
 
 void Process::calculate(const unsigned int &ticks) {

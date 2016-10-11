@@ -4,13 +4,17 @@
 
 #include "InputParser.h"
 
-void InputParser::parseInput() {
+void InputParser::parseInput(unique_ptr<Bank>& bank, unique_ptr<vector<unique_ptr<Process> > >& processes) {
   auto num_resources = parseNumResources();
   auto num_processes = parseNumProcesses();
   unique_ptr<vector<unsigned int> > resource_instances = parseInstancesOfResources(num_resources);
   unique_ptr<vector<vector<unsigned int> > > demands = parseDemands(num_resources, num_processes);
-  unique_ptr<vector<unique_ptr<Process> > > processes = parseProcesses(num_processes);
-  int deleteme = 1;
+  //populate bank
+  bank = make_unique<Bank>(demands);
+  for(const unsigned int& num_instances: *resource_instances){
+    bank->addResource(num_instances);
+  }
+  processes = parseProcesses(num_processes);
 }
 
 unsigned int InputParser::parseNumResources() {
