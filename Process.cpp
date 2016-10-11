@@ -15,7 +15,9 @@ int Process::run() {
     inter_com.registerAsChild();
     for(function<void()> instruction: instructions){
       //read from pipe (wait)
-      //do task: std::invoke(this, function_ref, args...);
+      inter_com.listenToParent();
+      //invoke(this, instruction); c++17 only
+      instruction();
     }
   }
   return pid;
