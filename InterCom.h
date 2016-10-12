@@ -14,6 +14,7 @@
 #include <cerrno>
 #include <unistd.h>
 
+using namespace std;
 
 class InterCom {
 private:

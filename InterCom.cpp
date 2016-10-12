@@ -9,10 +9,10 @@ InterCom::InterCom() {
   int child_to_parent[2];
   int parent_to_child[2];
   if(pipe(child_to_parent) == -1){
-    throw runtime_error("failed to open child_to_parent pipe: " + strerror(errno));
+    throw runtime_error("failed to open child_to_parent pipe: " + string(strerror(errno)));
   }
   if(pipe(parent_to_child) == -1){
-    throw runtime_error("failed to open parent_to_child pipe: " + strerror(errno));
+    throw runtime_error("failed to open parent_to_child pipe: " + string(strerror(errno)));
   }
   child_to_parent_pipe_in = child_to_parent[0];
   child_to_parent_pipe_out = child_to_parent[1];
@@ -21,11 +21,11 @@ InterCom::InterCom() {
 }
 
 void InterCom::registerAsParent() {
-  if(close(child_to_parent_pipe_out) == -1){
-    throw runtime_error("failed to close child_to_parent_pipe_out: " + strerror(errno));
+  if(close(child_to_parent_pipe_in) == -1){
+    throw runtime_error("failed to close child_to_parent_pipe_in: " + string(strerror(errno)));
   }
-  if(close(parent_to_child_pipe_in) == -1){
-    throw runtime_error("failed to close parent_to_child_pipe_in: " + strerror(errno));
+  if(close(parent_to_child_pipe_out) == -1){
+    throw runtime_error("failed to close parent_to_child_pipe_out: " + string(strerror(errno)));
   }
   is_parent = true;
   is_ready = true;
@@ -33,11 +33,11 @@ void InterCom::registerAsParent() {
 
 
 void InterCom::registerAsChild() {
-  if(close(child_to_parent_pipe_in) == -1){
-    throw runtime_error("failed to close child_to_parent_pipe_in: " + strerror(errno));
+  if(close(child_to_parent_pipe_out) == -1){
+    throw runtime_error("failed to close child_to_parent_pipe_out: " + string(strerror(errno)));
   }
-  if(close(parent_to_child_pipe_out) == -1){
-    throw runtime_error("failed to close parent_to_child_pipe_out: " + strerror(errno));
+  if(close(parent_to_child_pipe_in) == -1){
+    throw runtime_error("failed to close parent_to_child_pipe_in: " + string(strerror(errno)));
   }
   is_parent = false;
   is_ready = true;
@@ -46,32 +46,32 @@ void InterCom::registerAsChild() {
 InterCom::~InterCom() {
   if(is_ready){
     if(is_parent){
-      if(close(child_to_parent_pipe_in) == -1){
-        throw runtime_error("failed to close child_to_parent_pipe_in: " + strerror(errno));
-      }
-      if(close(parent_to_child_pipe_out) == -1){
-        throw runtime_error("failed to close parent_to_child_pipe_out: " + strerror(errno));
-      }
-    }else{
       if(close(child_to_parent_pipe_out) == -1){
-        throw runtime_error("failed to close child_to_parent_pipe_out: " + strerror(errno));
+        throw runtime_error("failed to close child_to_parent_pipe_out: " + string(strerror(errno)));
       }
       if(close(parent_to_child_pipe_in) == -1){
-        throw runtime_error("failed to close parent_to_child_pipe_in: " + strerror(errno));
+        throw runtime_error("failed to close parent_to_child_pipe_in: " + string(strerror(errno)));
+      }
+    }else{
+      if(close(child_to_parent_pipe_in) == -1){
+        throw runtime_error("failed to close child_to_parent_pipe_in: " + string(strerror(errno)));
+      }
+      if(close(parent_to_child_pipe_out) == -1){
+        throw runtime_error("failed to close parent_to_child_pipe_out: " + string(strerror(errno)));
       }
     }
   }else{
     if(close(child_to_parent_pipe_in) == -1){
-      throw runtime_error("failed to close child_to_parent_pipe_in: " + strerror(errno));
+      throw runtime_error("failed to close child_to_parent_pipe_in: " + string(strerror(errno)));
     }
     if(close(child_to_parent_pipe_out) == -1){
-      throw runtime_error("failed to close child_to_parent_pipe_out: " + strerror(errno));
+      throw runtime_error("failed to close child_to_parent_pipe_out: " + string(strerror(errno)));
     }
     if(close(parent_to_child_pipe_in) == -1){
-      throw runtime_error("failed to close parent_to_child_pipe_in: " + strerror(errno));
+      throw runtime_error("failed to close parent_to_child_pipe_in: " + string(strerror(errno)));
     }
     if(close(parent_to_child_pipe_out) == -1){
-      throw runtime_error("failed to close parent_to_child_pipe_out: " + strerror(errno));
+      throw runtime_error("failed to close parent_to_child_pipe_out: " + string(strerror(errno)));
     }
   }
 }
@@ -93,7 +93,7 @@ void InterCom::tellParent(const string &message) {
 
 void InterCom::tell(const int& pipe_to_tell, const string &message){
   if(message.size() > BUFFER_SIZE){
-    throw runtime_error("attempting to write " + string(message.size()) + " bytes to " + string(BUFFER_SIZE) + " byte buffer");
+    throw runtime_error("attempting to write " + to_string(message.size()) + " bytes to " + to_string(BUFFER_SIZE) + " byte buffer");
   }
   string buffered_string = message;
   if(message.size() < BUFFER_SIZE){
@@ -102,7 +102,7 @@ void InterCom::tell(const int& pipe_to_tell, const string &message){
   }
   int result = write(pipe_to_tell, buffered_string.c_str(), BUFFER_SIZE);
   if(result != BUFFER_SIZE){
-    throw runtime_error("failed to write full string to pipe: " + strerror(errno));
+    throw runtime_error("failed to write full string to pipe: " + string(strerror(errno)));
   }
 }
 
@@ -122,9 +122,9 @@ unique_ptr<string> InterCom::listenToParent() {
 
 unique_ptr<string> InterCom::listen(const int &pipe_to_listen) {
   char buffer[BUFFER_SIZE];
-  int result = read(pipe_to_listen, buffer, BUFFER_SIZE);
+  ssize_t result = read(pipe_to_listen, buffer, BUFFER_SIZE);
   if(result != BUFFER_SIZE){
-    throw runtime_error("failed to read full buffer from pipe: " + strerror(errno));
+    throw runtime_error("failed to read full buffer from pipe: " + string(strerror(errno)));
   }
   return make_unique<string>(buffer);
 }

@@ -7,7 +7,7 @@
 int Process::run() {
   pid = fork();
   if(pid == -1){
-    throw runtime_error("failed to fork: " + strerror(errno));
+    throw runtime_error("failed to fork: " + string(strerror(errno)));
   }
   if(pid != 0){
     inter_com.registerAsParent();
