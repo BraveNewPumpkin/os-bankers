@@ -63,7 +63,7 @@ int main(int argc, char* argv[]){
     unique_ptr<Process> previous_process;
     int passed_deadline_index = -1;
     while(!all_done){
-      pick next process (not = previous_process, by deadline, then computation time left)
+      pick next process (not = previous_process, not finished process, by deadline, then computation time left)
       write to pipe
       read from pipe
       add time to clock

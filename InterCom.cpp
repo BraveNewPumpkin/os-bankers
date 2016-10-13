@@ -14,10 +14,11 @@ InterCom::InterCom() {
   if(pipe(parent_to_child) == -1){
     throw runtime_error("failed to open parent_to_child pipe: " + string(strerror(errno)));
   }
-  child_to_parent_pipe_in = child_to_parent[0];
-  child_to_parent_pipe_out = child_to_parent[1];
-  parent_to_child_pipe_in = parent_to_child[0];
-  parent_to_child_pipe_out = parent_to_child[1];
+
+  child_to_parent_pipe_in = child_to_parent[1];
+  child_to_parent_pipe_out = child_to_parent[0];
+  parent_to_child_pipe_in = parent_to_child[1];
+  parent_to_child_pipe_out = parent_to_child[0];
 }
 
 void InterCom::registerAsParent() {
