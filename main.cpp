@@ -11,6 +11,7 @@
 #include <unistd.h> //for unix things
 
 #include "InputParser.h"
+#include "EdfSjfScheduler.h"
 //#include "Bank.h"
 //#include "Process.h"
 
@@ -57,20 +58,22 @@ int main(int argc, char* argv[]){
         break;
       }
     }
+    EdfSjfScheduler scheduler(processes);
     bool all_done = false;
     unsigned int clock = 0;
-    /*
-    unique_ptr<Process> previous_process;
     int passed_deadline_index = -1;
     while(!all_done){
-      pick next process (not = previous_process, not finished process, by deadline, then computation time left)
-      write to pipe
-      read from pipe
-      add time to clock
-      check deadlines & report any newly passed ones
-      check if all procs report done
+      /*
+        write to pipe
+        read from pipe
+        add time to clock
+       */
+      //check deadlines & report any newly passed ones
+      scheduler.getDeadlinesPassed(clock);
+      all_done = scheduler.allProcessesFinished();
+      //TODO remove
+      all_done = true;
     }
-     */
   }catch (const regex_error& e){
     cerr << "unhandled std::regex_error caught in main: " << e.what() << " code: " << e.code()<< endl;
     return EXIT_FAILURE;
