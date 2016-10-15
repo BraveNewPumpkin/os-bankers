@@ -16,7 +16,7 @@ class ProcessScheduler {
 protected:
   unique_ptr<vector<unique_ptr<Process> > > processes;
 public:
-  ProcessScheduler(unique_ptr<vector<unique_ptr<Process> > > &processes) : processes(move(processes)) {};
+//  ProcessScheduler(unique_ptr<vector<unique_ptr<Process> > > &processes) : processes(processes) {};
   //pure virtual method
   virtual unique_ptr<Process>& getProcessToRun() = 0;
   virtual bool allProcessesFinished() = 0;

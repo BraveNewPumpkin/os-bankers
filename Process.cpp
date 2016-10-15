@@ -18,6 +18,7 @@ int Process::run() {
       inter_com.listenToParent();
       //invoke(this, instruction); c++17 only
       instruction();
+      //TODO if instruction failed set iterator back one to rerun this instruction
     }
   }
   return pid;
@@ -33,10 +34,12 @@ void Process::useresources(const unsigned int &ticks) {
 
 void Process::request(unique_ptr<vector<unsigned int> >& requested_resources) {
 //TODO
+  //reduce computation time by 1
 }
 
 void Process::release(unique_ptr<vector<unsigned int> >& requested_resources) {
 //TODO
+  //reduce computation time by 1
 }
 
 void Process::pushInstruction(Instruction instruction, const unsigned int& ticks) {

@@ -54,23 +54,29 @@ int main(int argc, char* argv[]){
     //run processes
     for(unique_ptr<Process>& process: *processes){
       if(process->run() == 0){
-        //am child so exit loop
-        break;
+        //am child so exit
+        return EXIT_SUCCESS;
       }
     }
     EdfSjfScheduler scheduler(processes);
     bool all_done = false;
     unsigned int clock = 0;
-    int passed_deadline_index = -1;
+
     while(!all_done){
-      /*
-        write to pipe
-        read from pipe
-        add time to clock
-       */
+      unique_ptr<Process>& process = scheduler.getProcessToRun();
+//TODO      write to pipe
+//TODO      read from pipe
+      if(bankers(process)){
+//TODO        write commit to pipe
+        scheduler.processRan();
+      }else{
+//TODO        write rollback to pipe
+        scheduler.processBlocked();
+      }
+//TODO      add time to clock
       //check deadlines & report any newly passed ones
-      scheduler.getDeadlinesPassed(clock);
-      all_done = scheduler.allProcessesFinished();
+//TODO      scheduler.getDeadlinesPassed(clock);
+//TODO      all_done = scheduler.allProcessesFinished();
       //TODO remove
       all_done = true;
     }
