@@ -14,47 +14,51 @@ int Process::run() {
   }else{
     inter_com.registerAsChild();
     setPid(pid);
-    for(function<void()> instruction: instructions){
+    for(auto instruction_iterator = instructions.begin();
+        instruction_iterator != instructions.end();
+        ++instruction_iterator){
       //read from pipe (wait)
       inter_com.listenToParent();
       //invoke(this, instruction); c++17 only
-      instruction();
-      //TODO if instruction failed set iterator back one to rerun this instruction
+      if(!(*instruction_iterator)()){
+        //if instruction was not run, move iterator back
+        instruction_iterator--;
+      }
     }
   }
   return pid;
 }
 
-void Process::calculate(const unsigned int &ticks) {
+bool Process::calculate(const unsigned int &ticks) {
 //TODO
 }
 
-void Process::useresources(const unsigned int &ticks) {
+bool Process::useresources(const unsigned int &ticks) {
 //TODO
 }
 
-void Process::request(unique_ptr<vector<unsigned int> >& requested_resources) {
+bool Process::request(unique_ptr<vector<unsigned int> > &requested_resources) {
 //TODO
-  //reduce computation time by 1
+  //reduce computation time by 1 if successful
 }
 
-void Process::release(unique_ptr<vector<unsigned int> >& requested_resources) {
+bool Process::release(unique_ptr<vector<unsigned int> > &requested_resources) {
 //TODO
-  //reduce computation time by 1
+  //reduce computation time by 1 if successful
 }
 
 void Process::pushInstruction(Instruction instruction, const unsigned int& ticks) {
   //__bind<__mem_fn<void (Process::*)(const unsigned int&)>, Args& > temp = bind(mem_fn(&Process::calculate), forward<Args>(args));
-  function<void()> delegate;
+  function<bool()> delegate;
   switch(instruction){
     case Instruction::calculate:
-      delegate = [&](){
-        calculate(ticks);
+      delegate = [&]()->bool{
+        return calculate(ticks);
       };
     break;
     case Instruction::useresources:
-      delegate = [&](){
-        useresources(ticks);
+      delegate = [&]()->bool{
+        return useresources(ticks);
       };
     break;
     case Instruction::request:
@@ -65,16 +69,16 @@ void Process::pushInstruction(Instruction instruction, const unsigned int& ticks
 }
 
 void Process::pushInstruction(Instruction instruction, unique_ptr<vector<unsigned int> >& requested_resources) {
-  function<void()> delegate;
+  function<bool()> delegate;
   switch(instruction){
     case Instruction::request:
-      delegate = [&](){
-        request(requested_resources);
+      delegate = [&]()->bool{
+        return request(requested_resources);
       };
       break;
     case Instruction::release:
-      delegate = [&](){
-        release(requested_resources);
+      delegate = [&]()->bool{
+        return release(requested_resources);
       };
       break;
     case Instruction::calculate:

@@ -17,9 +17,7 @@ bool EdfSjfScheduler::processComparator(unique_ptr<Process> &a, unique_ptr<Proce
 void EdfSjfScheduler::processBlocked() {
   blocked_process_indicies.insert(*unfinished_process_iterator);
   if (blocked_process_indicies.size() >= unfinished_process_indices.size()) { //TODO check to see if this works
-    if (blocked_process_indicies.count(index) > 0) {
-      throw runtime_error("DEADLOCK! All remaining processes are blocked");
-    }
+    throw runtime_error("DEADLOCK! All remaining processes are blocked");
   }
 }
 
@@ -51,11 +49,10 @@ unique_ptr<Process>& EdfSjfScheduler::getProcessToRun() {
 unique_ptr<vector<unsigned int>> EdfSjfScheduler::getDeadlinesPassed(unsigned int& clock) {
   auto passed_deadlines = make_unique<vector<unsigned int> >();
   //check deadlines starting at last_passed_deadline_index until not passed
-  //TODO handle initial case and it should be looking ahead one: "LAST passed iterator"
-  while(last_passed_deadline_iterator != processes->end() && processes->at(*last_passed_deadline_iterator)->getDeadline() < clock){
-    passed_deadlines->emplace_back(processes->at(*last_passed_deadline_iterator)->getPid());
+  while(next_deadline_iterator != processes->end() && processes->at(*next_deadline_iterator)->getDeadline() < clock){
+    passed_deadlines->emplace_back(processes->at(*next_deadline_iterator)->getPid());
     //set new last_passed_deadline_index
-    ++last_passed_deadline_iterator;
+    ++next_deadline_iterator;
   }
   return passed_deadlines;
 }

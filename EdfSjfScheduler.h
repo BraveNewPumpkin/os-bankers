@@ -17,7 +17,7 @@ class EdfSjfScheduler : public ProcessScheduler {
 private:
   bool first_run;
   unsigned int last_run_index;
-  vector::iterator last_passed_deadline_iterator;
+  vector::iterator next_deadline_iterator;
   list::iterator unfinished_process_iterator;
   unordered_set<unsigned int> blocked_process_indicies;
   list<unsigned int> unfinished_process_indices;
@@ -25,7 +25,7 @@ private:
 public:
   EdfSjfScheduler(unique_ptr<vector<unique_ptr<Process> > > &processes) :
      first_run(true),
-     last_passed_deadline_iterator(processes->begin()),
+     next_deadline_iterator(processes->begin()),
      unfinished_process_indices(processes->size()),
      unfinished_process_iterator(unfinished_process_indices.begin()) {
     this->processes = make_unique<vector<unique_ptr<Process> > >();

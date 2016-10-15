@@ -23,12 +23,12 @@ private:
   unsigned int pid;
   unsigned int deadline;
   unsigned int processing_time;
-  vector<function<void()> > instructions;
+  vector<function<bool()> > instructions;
 
-  void calculate(const unsigned int& ticks);
-  void useresources(const unsigned int& ticks);
-  void request(unique_ptr<vector<unsigned int> >& requested_resources);
-  void release(unique_ptr<vector<unsigned int> >& requested_resources);
+  bool calculate(const unsigned int &ticks);
+  bool useresources(const unsigned int &ticks);
+  bool request(unique_ptr<vector<unsigned int> > &requested_resources);
+  bool release(unique_ptr<vector<unsigned int> > &requested_resources);
 public:
   int run();
 
