@@ -13,6 +13,7 @@ int Process::run() {
     inter_com.registerAsParent();
   }else{
     inter_com.registerAsChild();
+    setPid(pid);
     for(function<void()> instruction: instructions){
       //read from pipe (wait)
       inter_com.listenToParent();
