@@ -18,10 +18,12 @@
 
 using namespace std;
 
-bool bankers(unique_ptr<Process>& process, const string& instruction){
+bool bankers(unique_ptr<Process>& process, const Process::Instruction& instruction, const vector<unsigned int>& args){
   //TODO
+
   return true;
 }
+
 
 int main(int argc, char* argv[]){
   try {
@@ -37,17 +39,17 @@ int main(int argc, char* argv[]){
       printUsage();
       return EXIT_FAILURE;
     }
-    string inpute_filepath = argv[1];
+    string input_filepath = argv[1];
     //check if asking for help
     regex help_arg("^-{1,2}[Hh](?:elp)?$");
-    if (regex_match(inpute_filepath, help_arg)) {
+    if (regex_match(input_filepath, help_arg)) {
       printUsage();
       return EXIT_SUCCESS;
     }
     //attempt to open input file
-    ifstream input_stream(inpute_filepath);
+    ifstream input_stream(input_filepath);
     if (!input_stream.is_open()) {
-      string message = "failed to open input file: \"" + inpute_filepath + "\"";
+      string message = "failed to open input file: \"" + input_filepath + "\"";
       throw runtime_error(message);
     }
     unique_ptr<Bank> bank;
@@ -68,13 +70,23 @@ int main(int argc, char* argv[]){
     bool all_done = false;
     unsigned int clock = 0;
 
+    regex instruction_regex("(\\w+)\\s+");
+    smatch matches;
+
     while(!all_done){
       unique_ptr<Process>& process = scheduler.getProcessToRun();
       auto inter_com = process->getInterCom();
       inter_com->tellChild("run");
       unique_ptr<string> response = inter_com->listenToChild();
-      cout << "response: " << *response << endl;
-      if(bankers(process, *response)){
+      cout << "instruction from child (PID: " << process->getPid() << "): " << *response << endl;
+      regex_search(*response, matches, instruction_regex);
+      string instruction_string(matches[1].str());
+      Process::Instruction instruction = process->stringToInstruction(instruction_string);
+      vector<unsigned int> args;
+      for_each(matches.begin()+2, matches.end(), [&args](const string& arg){
+        args.push_back((unsigned int)stoul(arg));
+      });
+      if(bankers(process, instruction, args)){
         inter_com->tellChild("success");
         response = inter_com->listenToChild();
         clock += stoul(*response);
@@ -89,8 +101,6 @@ int main(int argc, char* argv[]){
         cout << "deadline passed for PID: " + to_string(passed_deadline) << endl;
       }
       all_done = scheduler.allProcessesFinished();
-      //TODO remove
-      all_done = true;
     }
   }catch (const regex_error& e){
     cerr << "unhandled std::regex_error caught in main: " << e.what() << " code: " << e.code()<< endl;

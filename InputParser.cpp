@@ -106,7 +106,6 @@ unique_ptr<Process> InputParser::parseProcess() {
       at_end = true;
     }
   }
-  process->pushInstruction(Process::Instruction::calculate, 2);
   return process;
 }
 

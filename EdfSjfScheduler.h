@@ -24,7 +24,6 @@ private:
 public:
   EdfSjfScheduler(unique_ptr<vector<unique_ptr<Process> > > &processes) :
      unfinished_process_indices(processes->size()),
-     next_deadline_iterator(processes->begin()),
      unfinished_process_iterator(unfinished_process_indices.begin()) {
     this->processes = make_unique<vector<unique_ptr<Process> > >();
     //move vector contents
@@ -35,6 +34,7 @@ public:
     sort(this->processes->begin(), this->processes->end(), makeComparator());
     //populate unfinished index list
     iota(unfinished_process_indices.begin(), unfinished_process_indices.end(), 0);
+    next_deadline_iterator = this->processes->begin();
   };
 
   unique_ptr<vector<unsigned int>> getDeadlinesPassed(unsigned int& clock);

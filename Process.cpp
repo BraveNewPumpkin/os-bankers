@@ -5,9 +5,8 @@
 #include "Process.h"
 
 int Process::run() {
-//  pid = fork();
+  pid = fork();
 
-  pid = 0;
   if(pid == -1){
     throw runtime_error("failed to fork: " + string(strerror(errno)));
   }
@@ -15,7 +14,6 @@ int Process::run() {
     inter_com->registerAsParent();
   }else{
     inter_com->registerAsChild();
-    setPid(pid);
     for(auto instruction_iterator = instructions.begin();
         instruction_iterator != instructions.end();
         ++instruction_iterator){
@@ -47,7 +45,7 @@ bool Process::release(vector<unsigned int> requested_resources) {
 }
 
 bool Process::processingActions(const string &name, const unsigned int &ticks) {
-  inter_com->tellParent(name + "(" + to_string(ticks) + ")");
+  inter_com->tellParent(name + " " + to_string(ticks));
   //return true if successfully ran as reported by parent and false otherwise
   unique_ptr<string> result = inter_com->listenToParent();
   bool wasRun = (*result) == "success";
@@ -65,7 +63,7 @@ bool Process::resourceActions(const string& name, vector<unsigned int>& requeste
   stream << requested_resources.back();
   string resources_string = stream.str();
   resources_string.erase(resources_string.length()-1);
-  inter_com->tellParent(name + "(" + resources_string + ")");
+  inter_com->tellParent(name + " " + resources_string);
   unique_ptr<string> result = inter_com->listenToParent();
   //return true if successfully ran as reported by parent and false otherwise
   bool wasRun = (*result) == "success";
@@ -117,6 +115,39 @@ void Process::pushInstruction(Instruction instruction, vector<unsigned int> requ
       throw runtime_error("invalid arguments for Instruction");
   }
   instructions.push_back(delegate);
+}
+
+unique_ptr<string> Process::instructionsToString(Instruction instruction) {
+  switch(instruction){
+    case Instruction::calculate:
+      return make_unique<string>("calculate");
+    case Instruction::useresources:
+      return make_unique<string>("useresources");
+    case Instruction::request:
+      return make_unique<string>("request");
+    case Instruction::release:
+      return make_unique<string>("release");
+  }
+}
+
+Process::Instruction Process::stringToInstruction(const string& name) {
+  regex calculate_regex("calculate");
+  regex useresources_regex("useresources");
+  regex request_regex("request");
+  regex release_regex("release");
+
+  Instruction to_return;
+
+  if(regex_match(name, calculate_regex)) {
+    to_return = Instruction::calculate;
+  }else if(regex_match(name, useresources_regex)){
+    to_return = Instruction::useresources;
+  }else if(regex_match(name, request_regex)){
+    to_return = Instruction::request;
+  }else if(regex_match(name, release_regex)){
+    to_return = Instruction::release;
+  }
+  return to_return;
 }
 
 unsigned int Process::getPid() const {

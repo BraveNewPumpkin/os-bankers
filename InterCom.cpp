@@ -6,6 +6,7 @@
 
 InterCom::InterCom() {
   is_ready = false;
+  is_parent = true;
   int child_to_parent[2];
   int parent_to_child[2];
   if(pipe(child_to_parent) == -1){
@@ -22,25 +23,25 @@ InterCom::InterCom() {
 }
 
 void InterCom::registerAsParent() {
+  is_parent = true;
   if(close(child_to_parent_pipe_in) == -1){
     throw runtime_error("failed to close child_to_parent_pipe_in: " + string(strerror(errno)));
   }
   if(close(parent_to_child_pipe_out) == -1){
     throw runtime_error("failed to close parent_to_child_pipe_out: " + string(strerror(errno)));
   }
-  is_parent = true;
   is_ready = true;
 }
 
 
 void InterCom::registerAsChild() {
+  is_parent = false;
   if(close(child_to_parent_pipe_out) == -1){
     throw runtime_error("failed to close child_to_parent_pipe_out: " + string(strerror(errno)));
   }
   if(close(parent_to_child_pipe_in) == -1){
     throw runtime_error("failed to close parent_to_child_pipe_in: " + string(strerror(errno)));
   }
-  is_parent = false;
   is_ready = true;
 }
 
@@ -50,30 +51,38 @@ InterCom::~InterCom() {
       if(close(child_to_parent_pipe_out) == -1){
         throw runtime_error("failed to close child_to_parent_pipe_out: " + string(strerror(errno)));
       }
+      child_to_parent_pipe_out = -2;
       if(close(parent_to_child_pipe_in) == -1){
         throw runtime_error("failed to close parent_to_child_pipe_in: " + string(strerror(errno)));
       }
+      parent_to_child_pipe_in = -2;
     }else{
       if(close(child_to_parent_pipe_in) == -1){
         throw runtime_error("failed to close child_to_parent_pipe_in: " + string(strerror(errno)));
       }
+      child_to_parent_pipe_in = -2;
       if(close(parent_to_child_pipe_out) == -1){
         throw runtime_error("failed to close parent_to_child_pipe_out: " + string(strerror(errno)));
       }
+      parent_to_child_pipe_out = -2;
     }
   }else{
     if(close(child_to_parent_pipe_in) == -1){
       throw runtime_error("failed to close child_to_parent_pipe_in: " + string(strerror(errno)));
     }
+    child_to_parent_pipe_in = -3;
     if(close(child_to_parent_pipe_out) == -1){
       throw runtime_error("failed to close child_to_parent_pipe_out: " + string(strerror(errno)));
     }
+    child_to_parent_pipe_out = -3;
     if(close(parent_to_child_pipe_in) == -1){
       throw runtime_error("failed to close parent_to_child_pipe_in: " + string(strerror(errno)));
     }
+    parent_to_child_pipe_in = -3;
     if(close(parent_to_child_pipe_out) == -1){
       throw runtime_error("failed to close parent_to_child_pipe_out: " + string(strerror(errno)));
     }
+    parent_to_child_pipe_out = -3;
   }
 }
 

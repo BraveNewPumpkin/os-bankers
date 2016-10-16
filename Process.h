@@ -6,6 +6,7 @@
 #define TEST_PROCESS_H
 
 #include <vector>
+#include <regex> //for matching Instructions
 #include <functional>
 #include <utility>
 #include <memory>
@@ -38,7 +39,8 @@ public:
   int run();
 
   enum class Instruction {calculate, useresources, request, release};
-  //typedef void (Process::*calculate)(const unsigned int&);
+  unique_ptr<string> instructionsToString(Instruction instruction);
+  Instruction stringToInstruction(const string& name);
 
   void pushInstruction(Instruction instruction, const unsigned int& ticks);
   void pushInstruction(Instruction instruction, vector<unsigned int> requested_resources);
