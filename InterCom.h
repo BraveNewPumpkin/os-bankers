@@ -12,6 +12,7 @@
 #include <stdexcept>
 #include <cstring>
 #include <cerrno>
+#include <csignal>
 #include <unistd.h>
 
 using namespace std;

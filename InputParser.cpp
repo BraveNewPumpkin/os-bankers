@@ -87,21 +87,21 @@ unique_ptr<Process> InputParser::parseProcess() {
       const unsigned int duration = stoul(match.str(1));
       process->pushInstruction(Process::Instruction::useresources, duration);
     }else if(regex_search(line, match, request_parser)){
-      auto requested_resources = make_unique<vector<unsigned int> >();
+      vector<unsigned int> requested_resources;
       vector<string> tokens = split(match.str(1),',');
       for(const string& token: tokens){
         const unsigned int num_instances = stoul(token);
-        requested_resources->push_back(num_instances);
+        requested_resources.push_back(num_instances);
       }
       process->pushInstruction(Process::Instruction::request, requested_resources);
     }else if(regex_search(line, match, release_parser)){
-      auto requested_resources = make_unique<vector<unsigned int> >();
+      vector<unsigned int> requested_resources;
       vector<string> tokens = split(match.str(1),',');
       for(const string& token: tokens){
         const unsigned int num_instances = stoul(token);
-        requested_resources->push_back(num_instances);
+        requested_resources.push_back(num_instances);
       }
-      process->pushInstruction(Process::Instruction::request, requested_resources);
+      process->pushInstruction(Process::Instruction::release, requested_resources);
     }else if(regex_search(line, match, end_parser)){
       at_end = true;
     }

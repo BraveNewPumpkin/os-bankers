@@ -4,25 +4,27 @@
 
 #include "EdfSjfScheduler.h"
 
-bool EdfSjfScheduler::processComparator(unique_ptr<Process> &a, unique_ptr<Process> &b) {
-  if(a->getDeadline() < b->getDeadline()){
-    return true;
-  }else if(a->getDeadline() > b->getDeadline()){
-    return false;
-  }else{
-    return a->getProcessingTime() < b->getProcessingTime();
-  }
+function<bool(unique_ptr<Process> &a, unique_ptr<Process> &b)> EdfSjfScheduler::makeComparator(){
+  return [](unique_ptr<Process> &a, unique_ptr<Process> &b)->bool {
+    if (a->getDeadline() < b->getDeadline()) {
+      return true;
+    } else if (a->getDeadline() > b->getDeadline()) {
+      return false;
+    } else {
+      return a->getProcessingTime() < b->getProcessingTime();
+    }
+  };
 }
 
 void EdfSjfScheduler::processBlocked() {
-  blocked_process_indicies.insert(*unfinished_process_iterator);
-  if (blocked_process_indicies.size() >= unfinished_process_indices.size()) { //TODO check to see if this works
+  blocked_process_indices.insert(*unfinished_process_iterator);
+  if (blocked_process_indices.size() >= unfinished_process_indices.size()) { //TODO check to see if this works
     throw runtime_error("DEADLOCK! All remaining processes are blocked");
   }
 }
 
 void EdfSjfScheduler::processRan() {
-  blocked_process_indicies.clear();
+  blocked_process_indices.clear();
   last_run_index = *unfinished_process_iterator;
 }
 
@@ -49,8 +51,8 @@ unique_ptr<Process>& EdfSjfScheduler::getProcessToRun() {
 unique_ptr<vector<unsigned int>> EdfSjfScheduler::getDeadlinesPassed(unsigned int& clock) {
   auto passed_deadlines = make_unique<vector<unsigned int> >();
   //check deadlines starting at last_passed_deadline_index until not passed
-  while(next_deadline_iterator != processes->end() && processes->at(*next_deadline_iterator)->getDeadline() < clock){
-    passed_deadlines->emplace_back(processes->at(*next_deadline_iterator)->getPid());
+  while(next_deadline_iterator != processes->end() && (*next_deadline_iterator)->getDeadline() < clock){
+    passed_deadlines->emplace_back((*next_deadline_iterator)->getPid());
     //set new last_passed_deadline_index
     ++next_deadline_iterator;
   }

@@ -17,6 +17,11 @@
 
 using namespace std;
 
+bool bankers(unique_ptr<Process>& process){
+  //TODO
+  return true;
+}
+
 int main(int argc, char* argv[]){
   try {
 
@@ -64,8 +69,10 @@ int main(int argc, char* argv[]){
 
     while(!all_done){
       unique_ptr<Process>& process = scheduler.getProcessToRun();
-//TODO      write to pipe
-//TODO      read from pipe
+      auto inter_com = process->getInterCom();
+      inter_com->tellChild("run");
+      unique_ptr<string> response = inter_com->listenToChild();
+      cout << "response: " << *response << endl;
       if(bankers(process)){
 //TODO        write commit to pipe
         scheduler.processRan();

@@ -5,21 +5,22 @@
 #include "Process.h"
 
 int Process::run() {
-  pid = fork();
+//  pid = fork();
+
+  pid = 0;
   if(pid == -1){
     throw runtime_error("failed to fork: " + string(strerror(errno)));
   }
   if(pid != 0){
-    inter_com.registerAsParent();
+    inter_com->registerAsParent();
   }else{
-    inter_com.registerAsChild();
+    inter_com->registerAsChild();
     setPid(pid);
     for(auto instruction_iterator = instructions.begin();
         instruction_iterator != instructions.end();
         ++instruction_iterator){
       //read from pipe (wait)
-      inter_com.listenToParent();
-      //invoke(this, instruction); c++17 only
+      inter_com->listenToParent();
       if(!(*instruction_iterator)()){
         //if instruction was not run, move iterator back
         instruction_iterator--;
@@ -31,20 +32,60 @@ int Process::run() {
 
 bool Process::calculate(const unsigned int &ticks) {
 //TODO
+  inter_com->tellParent("calculate(" + to_string(ticks) + ")");
+  //return true if successfully ran as reported by parent and false otherwise
+  bool wasRun = true;
+  if(wasRun){
+    processing_time -= ticks;
+    return true;
+  }
+  return false;
 }
 
 bool Process::useresources(const unsigned int &ticks) {
 //TODO
+  inter_com->tellParent("useresources(" + to_string(ticks) + ")");
+  //return true if successfully ran as reported by parent and false otherwise
+  bool wasRun = true;
+  if(wasRun){
+    processing_time -= ticks;
+    return true;
+  }
+  return false;
 }
 
-bool Process::request(unique_ptr<vector<unsigned int> > &requested_resources) {
-//TODO
-  //reduce computation time by 1 if successful
+bool Process::request(vector<unsigned int> requested_resources) {
+  ostringstream stream;
+  copy(requested_resources.begin(), requested_resources.end()-1, ostream_iterator<unsigned int>(stream, ","));
+  stream << requested_resources.back();
+  string resources_string = stream.str();
+  inter_com->tellParent("request(" + resources_string + ")");
+  //return true if successfully ran as reported by parent and false otherwise
+  bool wasRun = true;
+  if(wasRun){
+    //reduce computation time by 1 if successful
+    processing_time--;
+    return true;
+  }
+  return false;
 }
 
-bool Process::release(unique_ptr<vector<unsigned int> > &requested_resources) {
+bool Process::release(vector<unsigned int> requested_resources) {
 //TODO
-  //reduce computation time by 1 if successful
+  ostringstream stream;
+  copy(requested_resources.begin(), requested_resources.end(), ostream_iterator<unsigned int>(stream, ","));
+  stream << requested_resources.back();
+  string resources_string = stream.str();
+  resources_string.erase(resources_string.length()-1);
+  inter_com->tellParent("release(" + resources_string + ")");
+  //return true if successfully ran as reported by parent and false otherwise
+  bool wasRun = true;
+  if(wasRun){
+    //reduce computation time by 1 if successful
+    processing_time--;
+    return true;
+  }
+  return false;
 }
 
 void Process::pushInstruction(Instruction instruction, const unsigned int& ticks) {
@@ -68,16 +109,16 @@ void Process::pushInstruction(Instruction instruction, const unsigned int& ticks
   instructions.push_back(delegate);
 }
 
-void Process::pushInstruction(Instruction instruction, unique_ptr<vector<unsigned int> >& requested_resources) {
+void Process::pushInstruction(Instruction instruction, vector<unsigned int> requested_resources) {
   function<bool()> delegate;
   switch(instruction){
     case Instruction::request:
-      delegate = [&]()->bool{
+      delegate = [this, requested_resources]()->bool{
         return request(requested_resources);
       };
       break;
     case Instruction::release:
-      delegate = [&]()->bool{
+      delegate = [this, requested_resources]()->bool{
         return release(requested_resources);
       };
       break;
@@ -110,4 +151,8 @@ unsigned int Process::getProcessingTime() const {
 
 void Process::setProcessingTime(const unsigned int processing_time) {
   Process::processing_time = processing_time;
+}
+
+shared_ptr<InterCom> Process::getInterCom() {
+  return inter_com;
 }
