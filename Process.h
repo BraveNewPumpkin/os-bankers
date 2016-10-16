@@ -30,6 +30,9 @@ private:
   bool useresources(const unsigned int &ticks);
   bool request(vector<unsigned int> requested_resources);
   bool release(vector<unsigned int> requested_resources);
+
+  bool resourceActions(const string& name, vector<unsigned int>& requested_resources);
+  bool processingActions(const string& name, const unsigned int &ticks);
 public:
   Process() : inter_com(make_shared<InterCom>()) {};
   int run();

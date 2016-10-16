@@ -25,7 +25,6 @@ void EdfSjfScheduler::processBlocked() {
 
 void EdfSjfScheduler::processRan() {
   blocked_process_indices.clear();
-  last_run_index = *unfinished_process_iterator;
 }
 
 unique_ptr<Process>& EdfSjfScheduler::getProcessToRun() {
@@ -33,9 +32,6 @@ unique_ptr<Process>& EdfSjfScheduler::getProcessToRun() {
   while(true) {
     while (unfinished_process_iterator != unfinished_process_indices.end()) {
       const unsigned int& index = *unfinished_process_iterator;
-//      if (!first_run && unfinished_process_indices.size() > 1 && index == last_run_index) {//TODO only throw if this one is also deadlocked unless it is last one left.
-//        throw runtime_error("DEADLOCK! All remaining processes are blocked");
-//      }
       if (processes->at(index)->getProcessingTime() > 0) {
         ++unfinished_process_iterator;
         return processes->at(index);

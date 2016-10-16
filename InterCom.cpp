@@ -98,7 +98,7 @@ void InterCom::tell(const int& pipe_to_tell, const string &message){
   }
   int result = write(pipe_to_tell, message.c_str(), BUFFER_SIZE);
   if(result == -1){
-    throw runtime_error("failed to write full string to pipe: " + string(strerror(errno)));
+    throw runtime_error("failed to write string to pipe: " + string(strerror(errno)));
   }
 }
 
@@ -120,7 +120,7 @@ unique_ptr<string> InterCom::listen(const int &pipe_to_listen) {
   char buffer[BUFFER_SIZE];
   ssize_t result = read(pipe_to_listen, buffer, BUFFER_SIZE);
   if(result == -1){
-    throw runtime_error("failed to read full buffer from pipe: " + string(strerror(errno)));
+    throw runtime_error("failed to read buffer from pipe: " + string(strerror(errno)));
   }
   return make_unique<string>(buffer);
 }

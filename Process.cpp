@@ -31,61 +31,51 @@ int Process::run() {
 }
 
 bool Process::calculate(const unsigned int &ticks) {
-//TODO
-  inter_com->tellParent("calculate(" + to_string(ticks) + ")");
-  //return true if successfully ran as reported by parent and false otherwise
-  bool wasRun = true;
-  if(wasRun){
-    processing_time -= ticks;
-    return true;
-  }
-  return false;
+  return processingActions("calculate", ticks);
 }
 
 bool Process::useresources(const unsigned int &ticks) {
-//TODO
-  inter_com->tellParent("useresources(" + to_string(ticks) + ")");
-  //return true if successfully ran as reported by parent and false otherwise
-  bool wasRun = true;
-  if(wasRun){
-    processing_time -= ticks;
-    return true;
-  }
-  return false;
+  return processingActions("useresources", ticks);
 }
 
 bool Process::request(vector<unsigned int> requested_resources) {
-  ostringstream stream;
-  copy(requested_resources.begin(), requested_resources.end()-1, ostream_iterator<unsigned int>(stream, ","));
-  stream << requested_resources.back();
-  string resources_string = stream.str();
-  inter_com->tellParent("request(" + resources_string + ")");
-  //return true if successfully ran as reported by parent and false otherwise
-  bool wasRun = true;
-  if(wasRun){
-    //reduce computation time by 1 if successful
-    processing_time--;
-    return true;
-  }
-  return false;
+  return resourceActions("request", requested_resources);
 }
 
 bool Process::release(vector<unsigned int> requested_resources) {
-//TODO
+  return resourceActions("release", requested_resources);
+}
+
+bool Process::processingActions(const string &name, const unsigned int &ticks) {
+  inter_com->tellParent(name + "(" + to_string(ticks) + ")");
+  //return true if successfully ran as reported by parent and false otherwise
+  unique_ptr<string> result = inter_com->listenToParent();
+  bool wasRun = (*result) == "success";
+  if(wasRun){
+    processing_time -= ticks;
+    //tell parent how much time it took
+    inter_com->tellParent(to_string(ticks));
+  }
+  return wasRun;
+}
+
+bool Process::resourceActions(const string& name, vector<unsigned int>& requested_resources){
   ostringstream stream;
   copy(requested_resources.begin(), requested_resources.end(), ostream_iterator<unsigned int>(stream, ","));
   stream << requested_resources.back();
   string resources_string = stream.str();
   resources_string.erase(resources_string.length()-1);
-  inter_com->tellParent("release(" + resources_string + ")");
+  inter_com->tellParent(name + "(" + resources_string + ")");
+  unique_ptr<string> result = inter_com->listenToParent();
   //return true if successfully ran as reported by parent and false otherwise
-  bool wasRun = true;
+  bool wasRun = (*result) == "success";
   if(wasRun){
     //reduce computation time by 1 if successful
     processing_time--;
-    return true;
+    //tell parent how much time it took
+    inter_com->tellParent(to_string(1));
   }
-  return false;
+  return wasRun;
 }
 
 void Process::pushInstruction(Instruction instruction, const unsigned int& ticks) {

@@ -18,7 +18,7 @@
 
 using namespace std;
 
-bool bankers(unique_ptr<Process>& process){
+bool bankers(unique_ptr<Process>& process, const string& instruction){
   //TODO
   return true;
 }
@@ -74,17 +74,21 @@ int main(int argc, char* argv[]){
       inter_com->tellChild("run");
       unique_ptr<string> response = inter_com->listenToChild();
       cout << "response: " << *response << endl;
-      if(bankers(process)){
-//TODO        write commit to pipe
+      if(bankers(process, *response)){
+        inter_com->tellChild("success");
+        response = inter_com->listenToChild();
+        clock += stoul(*response);
         scheduler.processRan();
       }else{
-//TODO        write rollback to pipe
+        inter_com->tellChild("failure");
         scheduler.processBlocked();
+        clock++;
       }
-//TODO      add time to clock
       //check deadlines & report any newly passed ones
-//TODO      scheduler.getDeadlinesPassed(clock);
-//TODO      all_done = scheduler.allProcessesFinished();
+      for(unsigned int passed_deadline: (*(scheduler.getDeadlinesPassed(clock)))){
+        cout << "deadline passed for PID: " + to_string(passed_deadline) << endl;
+      }
+      all_done = scheduler.allProcessesFinished();
       //TODO remove
       all_done = true;
     }
