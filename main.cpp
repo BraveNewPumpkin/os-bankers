@@ -8,6 +8,7 @@
 #include <vector>
 #include <memory> //smart pointers plz
 #include <string>
+#include <csignal>
 #include <unistd.h> //for unix things
 
 #include "InputParser.h"
@@ -24,7 +25,7 @@ bool bankers(unique_ptr<Process>& process){
 
 int main(int argc, char* argv[]){
   try {
-
+    signal(SIGPIPE, SIG_IGN);
     string program_name = argv[0];
     //define closure for printing out usage
     auto printUsage = [&program_name]() {

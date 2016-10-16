@@ -93,7 +93,6 @@ void InterCom::tellParent(const string &message) {
 }
 
 void InterCom::tell(const int& pipe_to_tell, const string &message){
-  signal(SIGPIPE, SIG_IGN);
   if(message.size() > BUFFER_SIZE){
     throw runtime_error("attempting to write " + to_string(message.size()) + " bytes to " + to_string(BUFFER_SIZE) + " byte buffer");
   }
