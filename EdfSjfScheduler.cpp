@@ -32,7 +32,11 @@ unique_ptr<Process>& EdfSjfScheduler::getProcessToRun() {
   while(true) {
     while (unfinished_process_iterator != unfinished_process_indices.end()) {
       const unsigned int& index = *unfinished_process_iterator;
-      if (processes->at(index)->getProcessingTime() > 0) {
+      auto processing_time = processes->at(index)->getProcessingTime();
+      processing_time->lockNum();
+      bool is_unfinished = (processing_time->num > 0);
+      processing_time->unlockNum();
+      if (is_unfinished) {
         ++unfinished_process_iterator;
         return processes->at(index);
       } else {

@@ -15,43 +15,47 @@
 #include <cerrno>
 #include <unistd.h>
 
-#include "InterCom.h"
+#include <boost/interprocess/managed_shared_memory.hpp>
 
-using namespace std;
+#include "InterCom.h"
+#include "SyncedSharedUnsignedInt.h"
 
 class Process {
 private:
-  shared_ptr<InterCom> inter_com;
+  std::shared_ptr<InterCom> inter_com;
   unsigned int pid;
   unsigned int deadline;
-  unsigned int processing_time;
-  vector<function<bool()> > instructions;
+  unsigned int initial_processing_time;
+  SyncedSharedUnsignedInt* processing_time;
+  std::vector<std::function<bool()> > instructions;
 
   bool calculate(const unsigned int &ticks);
   bool useresources(const unsigned int &ticks);
-  bool request(vector<unsigned int> requested_resources);
-  bool release(vector<unsigned int> requested_resources);
+  bool request(std::vector<unsigned int> requested_resources);
+  bool release(std::vector<unsigned int> requested_resources);
 
-  bool resourceActions(const string& name, vector<unsigned int>& requested_resources);
-  bool processingActions(const string& name, const unsigned int &ticks);
+  bool resourceActions(const std::string& name, std::vector<unsigned int>& requested_resources);
+  bool processingActions(const std::string& name, const unsigned int &ticks);
 public:
-  Process() : inter_com(make_shared<InterCom>()) {};
-  int run();
+  Process() : inter_com(std::make_shared<InterCom>()) {
+  }
+
+  int run(boost::interprocess::managed_shared_memory& segment);
 
   enum class Instruction {calculate, useresources, request, release};
-  unique_ptr<string> instructionsToString(Instruction instruction);
-  Instruction stringToInstruction(const string& name);
+  std::unique_ptr<std::string> instructionsToString(Instruction instruction);
+  Instruction stringToInstruction(const std::string& name);
 
   void pushInstruction(Instruction instruction, const unsigned int& ticks);
-  void pushInstruction(Instruction instruction, vector<unsigned int> requested_resources);
+  void pushInstruction(Instruction instruction, std::vector<unsigned int> requested_resources);
 
   unsigned int getPid() const;
   void setPid(const unsigned int pid);
   unsigned int getDeadline() const;
   void setDeadline(const unsigned int deadline);
-  unsigned int getProcessingTime() const;
-  void setProcessingTime(const unsigned int processing_time);
-  shared_ptr<InterCom> getInterCom();
+  SyncedSharedUnsignedInt* getProcessingTime() const;
+  void setInitialProcessingTime(const unsigned int& processing_time);
+  std::shared_ptr<InterCom> getInterCom();
 
 };
 

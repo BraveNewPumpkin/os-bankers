@@ -4,13 +4,19 @@
 
 #include "Process.h"
 
-int Process::run() {
+
+int Process::run(boost::interprocess::managed_shared_memory& segment) {
+
   pid = fork();
 
   if(pid == -1){
-    throw runtime_error("failed to fork: " + string(strerror(errno)));
+    throw std::runtime_error("failed to fork: " + std::string(std::strerror(errno)));
   }
   if(pid != 0){
+    std::string name = "proc_time" + std::to_string(pid);
+    processing_time = segment.construct<SyncedSharedUnsignedInt>
+       (name.c_str())  //name of the object
+       (name, initial_processing_time);  //ctor first argument
     inter_com->registerAsParent();
   }else{
     inter_com->registerAsChild();
@@ -36,49 +42,53 @@ bool Process::useresources(const unsigned int &ticks) {
   return processingActions("useresources", ticks);
 }
 
-bool Process::request(vector<unsigned int> requested_resources) {
+bool Process::request(std::vector<unsigned int> requested_resources) {
   return resourceActions("request", requested_resources);
 }
 
-bool Process::release(vector<unsigned int> requested_resources) {
+bool Process::release(std::vector<unsigned int> requested_resources) {
   return resourceActions("release", requested_resources);
 }
 
-bool Process::processingActions(const string &name, const unsigned int &ticks) {
-  inter_com->tellParent(name + " " + to_string(ticks));
+bool Process::processingActions(const std::string &name, const unsigned int &ticks) {
+  inter_com->tellParent(name + " " + std::to_string(ticks));
   //return true if successfully ran as reported by parent and false otherwise
-  unique_ptr<string> result = inter_com->listenToParent();
+  std::unique_ptr<std::string> result = inter_com->listenToParent();
   bool wasRun = (*result) == "success";
   if(wasRun){
-    processing_time -= ticks;
+    processing_time->lockNum();
+    processing_time->num -= ticks;
+    processing_time->unlockNum();
     //tell parent how much time it took
-    inter_com->tellParent(to_string(ticks));
+    inter_com->tellParent(std::to_string(ticks));
   }
   return wasRun;
 }
 
-bool Process::resourceActions(const string& name, vector<unsigned int>& requested_resources){
-  ostringstream stream;
-  copy(requested_resources.begin(), requested_resources.end(), ostream_iterator<unsigned int>(stream, ","));
+bool Process::resourceActions(const std::string& name, std::vector<unsigned int>& requested_resources){
+  std::ostringstream stream;
+  std::copy(requested_resources.begin(), requested_resources.end(), std::ostream_iterator<unsigned int>(stream, " "));
   stream << requested_resources.back();
   string resources_string = stream.str();
   resources_string.erase(resources_string.length()-1);
   inter_com->tellParent(name + " " + resources_string);
-  unique_ptr<string> result = inter_com->listenToParent();
+  std::unique_ptr<std::string> result = inter_com->listenToParent();
   //return true if successfully ran as reported by parent and false otherwise
   bool wasRun = (*result) == "success";
   if(wasRun){
     //reduce computation time by 1 if successful
-    processing_time--;
+    processing_time->lockNum();
+    processing_time->num --;
+    processing_time->unlockNum();
     //tell parent how much time it took
-    inter_com->tellParent(to_string(1));
+    inter_com->tellParent(std::to_string(1));
   }
   return wasRun;
 }
 
 void Process::pushInstruction(Instruction instruction, const unsigned int& ticks) {
   //__bind<__mem_fn<void (Process::*)(const unsigned int&)>, Args& > temp = bind(mem_fn(&Process::calculate), forward<Args>(args));
-  function<bool()> delegate;
+  std::function<bool()> delegate;
   switch(instruction){
     case Instruction::calculate:
       delegate = [&]()->bool{
@@ -92,13 +102,13 @@ void Process::pushInstruction(Instruction instruction, const unsigned int& ticks
     break;
     case Instruction::request:
     case Instruction::release:
-      throw runtime_error("invalid arguments for Instruction");
+      throw std::runtime_error("invalid arguments for Instruction");
   }
   instructions.push_back(delegate);
 }
 
-void Process::pushInstruction(Instruction instruction, vector<unsigned int> requested_resources) {
-  function<bool()> delegate;
+void Process::pushInstruction(Instruction instruction, std::vector<unsigned int> requested_resources) {
+  std::function<bool()> delegate;
   switch(instruction){
     case Instruction::request:
       delegate = [this, requested_resources]()->bool{
@@ -112,33 +122,33 @@ void Process::pushInstruction(Instruction instruction, vector<unsigned int> requ
       break;
     case Instruction::calculate:
     case Instruction::useresources:
-      throw runtime_error("invalid arguments for Instruction");
+      throw std::runtime_error("invalid arguments for Instruction");
   }
   instructions.push_back(delegate);
 }
 
-unique_ptr<string> Process::instructionsToString(Instruction instruction) {
+std::unique_ptr<std::string> Process::instructionsToString(Instruction instruction) {
   switch(instruction){
     case Instruction::calculate:
-      return make_unique<string>("calculate");
+      return std::make_unique<string>("calculate");
     case Instruction::useresources:
-      return make_unique<string>("useresources");
+      return std::make_unique<string>("useresources");
     case Instruction::request:
-      return make_unique<string>("request");
+      return std::make_unique<string>("request");
     case Instruction::release:
-      return make_unique<string>("release");
+      return std::make_unique<string>("release");
   }
 }
 
-Process::Instruction Process::stringToInstruction(const string& name) {
-  regex calculate_regex("calculate");
-  regex useresources_regex("useresources");
-  regex request_regex("request");
-  regex release_regex("release");
+Process::Instruction Process::stringToInstruction(const std::string& name) {
+  std::regex calculate_regex("calculate");
+  std::regex useresources_regex("useresources");
+  std::regex request_regex("request");
+  std::regex release_regex("release");
 
   Instruction to_return;
 
-  if(regex_match(name, calculate_regex)) {
+  if(std::regex_match(name, calculate_regex)) {
     to_return = Instruction::calculate;
   }else if(regex_match(name, useresources_regex)){
     to_return = Instruction::useresources;
@@ -166,14 +176,14 @@ void Process::setDeadline(const unsigned int deadline) {
   Process::deadline = deadline;
 }
 
-unsigned int Process::getProcessingTime() const {
+SyncedSharedUnsignedInt* Process::getProcessingTime() const {
   return processing_time;
 }
 
-void Process::setProcessingTime(const unsigned int processing_time) {
-  Process::processing_time = processing_time;
+void Process::setInitialProcessingTime(const unsigned int& processing_time) {
+  initial_processing_time = processing_time;
 }
 
-shared_ptr<InterCom> Process::getInterCom() {
+std::shared_ptr<InterCom> Process::getInterCom() {
   return inter_com;
 }

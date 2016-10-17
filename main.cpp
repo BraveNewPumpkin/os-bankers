@@ -11,10 +11,16 @@
 #include <csignal>
 #include <unistd.h> //for unix things
 
+#include <boost/interprocess/managed_shared_memory.hpp>
+
 #include "InputParser.h"
 #include "EdfSjfScheduler.h"
+#include "SyncedSharedUnsignedInt.h"
 //#include "Bank.h"
-//#include "Process.h"
+#include "Process.h"
+
+
+#define SHARED_MEMORY_NAME "os_bankers_memory"
 
 using namespace std;
 
@@ -28,6 +34,14 @@ bool bankers(unique_ptr<Process>& process, const Process::Instruction& instructi
 int main(int argc, char* argv[]){
   try {
     signal(SIGPIPE, SIG_IGN);
+
+    struct shm_remove
+    {
+      shm_remove() { boost::interprocess::shared_memory_object::remove(SHARED_MEMORY_NAME); }
+      ~shm_remove(){ boost::interprocess::shared_memory_object::remove(SHARED_MEMORY_NAME); }
+    } remover;
+
+
     string program_name = argv[0];
     //define closure for printing out usage
     auto printUsage = [&program_name]() {
@@ -59,19 +73,26 @@ int main(int argc, char* argv[]){
     input_parser.parseInput(bank, processes);
     //explicitly close file before forking
     input_stream.close();
+    //Construct managed shared memory
+    boost::interprocess::managed_shared_memory segment(
+       boost::interprocess::create_only,
+       SHARED_MEMORY_NAME,
+//       sizeof(SyncedSharedUnsignedInt) * processes->size()
+       65534
+    );
     //run processes
     for(unique_ptr<Process>& process: *processes){
-      if(process->run() == 0){
+      if(process->run(segment) == 0){
         //am child so exit
         return EXIT_SUCCESS;
       }
     }
     EdfSjfScheduler scheduler(processes);
     bool all_done = false;
-    unsigned int clock = 0;
 
     regex instruction_regex("(\\w+)\\s+");
     smatch matches;
+    unsigned int clock = 0;
 
     while(!all_done){
       unique_ptr<Process>& process = scheduler.getProcessToRun();
@@ -101,6 +122,11 @@ int main(int argc, char* argv[]){
         cout << "deadline passed for PID: " + to_string(passed_deadline) << endl;
       }
       all_done = scheduler.allProcessesFinished();
+    }
+
+    //destroy allocated things in shared memory
+    for(unique_ptr<Process>& process: *processes){
+      segment.destroy<SyncedSharedUnsignedInt>(process->getProcessingTime()->getName()->c_str());
     }
   }catch (const regex_error& e){
     cerr << "unhandled std::regex_error caught in main: " << e.what() << " code: " << e.code()<< endl;

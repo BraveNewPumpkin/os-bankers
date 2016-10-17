@@ -77,7 +77,7 @@ unique_ptr<Process> InputParser::parseProcess() {
   getline(input, line);
   process->setDeadline(matchBareNum(line));
   getline(input, line);
-  process->setProcessingTime(matchBareNum(line));
+  process->setInitialProcessingTime(matchBareNum(line));
   //parse all instructions
   while(getline(input, line) && !at_end){
     if(regex_search(line, match, calculate_parser)){
