@@ -59,7 +59,7 @@ bool Process::processingActions(const string &name, const unsigned int &ticks) {
 
 bool Process::resourceActions(const string& name, vector<unsigned int>& requested_resources){
   ostringstream stream;
-  copy(requested_resources.begin(), requested_resources.end(), ostream_iterator<unsigned int>(stream, ","));
+  copy(requested_resources.begin(), requested_resources.end(), ostream_iterator<unsigned int>(stream, " "));
   stream << requested_resources.back();
   string resources_string = stream.str();
   resources_string.erase(resources_string.length()-1);

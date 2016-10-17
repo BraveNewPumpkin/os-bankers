@@ -105,10 +105,14 @@ void InterCom::tell(const int& pipe_to_tell, const string &message){
   if(message.size() > BUFFER_SIZE){
     throw runtime_error("attempting to write " + to_string(message.size()) + " bytes to " + to_string(BUFFER_SIZE) + " byte buffer");
   }
-  int result = write(pipe_to_tell, message.c_str(), BUFFER_SIZE);
-  if(result == -1){
-    throw runtime_error("failed to write string to pipe: " + string(strerror(errno)));
-  }
+  ssize_t result;
+  do {
+    result = write(pipe_to_tell, message.c_str(), BUFFER_SIZE);
+    //ignore EINTR errors as they are apparently no big deal and indicate we should retry
+    if (result == -1 && errno != EINTR) {
+      throw runtime_error("failed to write string to pipe: " + string(strerror(errno)));
+    }
+  } while(result == -1);
 }
 
 unique_ptr<string> InterCom::listenToChild() {
@@ -127,9 +131,13 @@ unique_ptr<string> InterCom::listenToParent() {
 
 unique_ptr<string> InterCom::listen(const int &pipe_to_listen) {
   char buffer[BUFFER_SIZE];
-  ssize_t result = read(pipe_to_listen, buffer, BUFFER_SIZE);
-  if(result == -1){
-    throw runtime_error("failed to read buffer from pipe: " + string(strerror(errno)));
-  }
+  ssize_t result;
+  do{
+    result = read(pipe_to_listen, buffer, BUFFER_SIZE);
+    //ignore EINTR errors as they are apparently no big deal and indicate we should retry
+    if (result == -1 && errno != EINTR){
+      throw runtime_error("failed to read buffer from pipe: " + string(strerror(errno)));
+    }
+  }while(result == -1);
   return make_unique<string>(buffer);
 }
