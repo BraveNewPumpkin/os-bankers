@@ -27,6 +27,7 @@ bool bankers(unique_ptr<Process>& process, const Process::Instruction& instructi
 
 int main(int argc, char* argv[]){
   try {
+    //don't crash on SIGPIPE, let's handle it with exceptions like civilized persons
     signal(SIGPIPE, SIG_IGN);
     string program_name = argv[0];
     //define closure for printing out usage
@@ -89,7 +90,9 @@ int main(int argc, char* argv[]){
       if(bankers(process, instruction, args)){
         inter_com->tellChild("success");
         response = inter_com->listenToChild();
-        clock += stoul(*response);
+        unsigned int clicks_elapsed = stoul(*response);
+        clock += clicks_elapsed;
+        process->setProcessingTime(process->getProcessingTime() - clicks_elapsed);
         scheduler.processRan();
       }else{
         inter_com->tellChild("failure");
@@ -97,7 +100,8 @@ int main(int argc, char* argv[]){
         clock++;
       }
       //check deadlines & report any newly passed ones
-      for(unsigned int passed_deadline: (*(scheduler.getDeadlinesPassed(clock)))){
+      unique_ptr<vector<unsigned int> > passed_deadlines = scheduler.getDeadlinesPassed(clock);
+      for(unsigned int passed_deadline: *passed_deadlines){
         cout << "deadline passed for PID: " + to_string(passed_deadline) << endl;
       }
       all_done = scheduler.allProcessesFinished();
