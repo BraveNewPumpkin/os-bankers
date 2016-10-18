@@ -63,12 +63,7 @@ bool Process::processingActions(const std::string &name, const unsigned int &tic
 }
 
 bool Process::resourceActions(const std::string& name, std::vector<unsigned int>& requested_resources){
-  std::ostringstream stream;
-  std::copy(requested_resources.begin(), requested_resources.end(), std::ostream_iterator<unsigned int>(stream, " "));
-  stream << requested_resources.back();
-  std::string resources_string = stream.str();
-  resources_string.pop_back();
-  resources_string.pop_back();
+  //TODO put join in here
   inter_com->tellParent(name + " " + resources_string);
   std::unique_ptr<std::string> result = inter_com->listenToParent();
   //return true if successfully ran as reported by parent and false otherwise

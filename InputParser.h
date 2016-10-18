@@ -26,8 +26,6 @@ private:
   std::unique_ptr<std::vector<std::vector<unsigned int> > > parseDemands(const unsigned int& num_processes, const unsigned int& num_resources);
   std::unique_ptr<std::vector<std::unique_ptr<Process> > > parseProcesses(const unsigned int& num_processes);
   std::unique_ptr<Process> parseProcess(const unsigned int& index);
-  void split(const std::string &s, char delim, std::vector<std::string> &elems);
-  std::vector<std::string> split(const std::string &s, char delim);
 
 public:
   InputParser(std::ifstream &input): input(input) {};

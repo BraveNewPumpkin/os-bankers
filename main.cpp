@@ -65,11 +65,11 @@ int main(int argc, char* argv[]){
     bool all_done = false;
     unsigned int clock = 0;
 
-    regex instruction_regex("(\\w+)\\s+");
+    regex instruction_regex("(\\w+)\\s*");
     smatch matches;
 
     while(!all_done){
-      unique_ptr<Process>& process = scheduler.getProcessToRun();
+      unique_ptr<Process>& process = scheduler.getProcessToRun(bank);
       auto inter_com = process->getInterCom();
       inter_com->tellChild("run");
       unique_ptr<string> response = inter_com->listenToChild();
@@ -78,9 +78,11 @@ int main(int argc, char* argv[]){
       string instruction_string(matches[1].str());
       Process::Instruction instruction = process->stringToInstruction(instruction_string);
       vector<unsigned int> args;
-      for_each(matches.begin()+2, matches.end(), [&args](const string& arg){
-        args.push_back((unsigned int)stoul(arg));
-      });
+      string::const_iterator search_start(response->cbegin() + matches.position() + matches.length());
+      while(regex_search(search_start, response->cend(), matches, instruction_regex)){
+        args.push_back((unsigned int)stoul(matches[1]));
+        search_start += matches.position() + matches.length();
+      }
       if(bank->requestApproval(process, instruction, args)){
         inter_com->tellChild("success");
         cout << " was successful" << endl;
@@ -98,7 +100,7 @@ int main(int argc, char* argv[]){
       //check deadlines & report any newly passed ones
       unique_ptr<vector<unsigned int> > passed_deadlines = scheduler.getDeadlinesPassed(clock);
       for(unsigned int passed_deadline: *passed_deadlines){
-        cout << "deadline passed for PID: " + to_string(passed_deadline) << endl;
+        cout << "deadline passed for id: " + to_string(passed_deadline) << endl;
       }
       all_done = scheduler.allProcessesFinished();
     }

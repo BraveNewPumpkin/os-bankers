@@ -9,7 +9,7 @@
 
 class Resource {
 private:
-  unsigned int index;
+  const unsigned int index;
   unsigned int available;
   unsigned int used;
 public:
