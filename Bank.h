@@ -6,24 +6,36 @@
 #ifndef TEST_BANK_H
 #define TEST_BANK_H
 
-//forward declaration of dependencies
-class Resource;
-
 #include <vector>
 #include "Resource.h"
+#include "Process.h"
 
-using namespace std;
 
 class Bank {
 private:
-  vector<unique_ptr<Resource> > resources;
-  unique_ptr<vector<vector<unsigned int> > > claims;
+  std::vector<std::unique_ptr<Resource> > resources;
+  std::unique_ptr<std::vector<std::vector<unsigned int> > > claims;
+  std::unique_ptr<std::vector<std::vector<unsigned int> > > debits;
 public:
-  Bank(unique_ptr<vector<vector<unsigned int> > >& claims): claims(move(claims)) {};
+  Bank(const unsigned int& num_processes, const unsigned int& num_resources, std::unique_ptr<std::vector<std::vector<unsigned int> > >& claims):
+     claims(std::move(claims)),
+     debits(
+      std::unique_ptr<std::vector<std::vector<unsigned int> > >(
+       new std::vector<std::vector<unsigned int> >(
+        num_processes,
+        std::vector<unsigned int>(num_resources, 0)
+       )
+      )
+     ) {};
   //creates and adds a resource with given number of instances and returns the id
-  const int addResource(const int& num_instances);
+  const unsigned int addResource(const unsigned int& num_instances);
+  bool releaseResources(const std::unique_ptr<Process>& process, std::vector<unsigned int> resources);
+  std::unique_ptr<Resource>& getResource(const int& resource_id);
 
-  unique_ptr<Resource>& getResource(const int& resource_id);
+  bool requestApproval(const std::unique_ptr<Process>& process, const Process::Instruction& instruction, const std::vector<unsigned int>& args);
+  bool bankers(const std::unique_ptr<Process>& process, std::vector<unsigned int> requested_resources);
+
+
 
 };
 

@@ -14,8 +14,6 @@
 #include <cerrno>
 #include <unistd.h>
 
-using namespace std;
-
 class InterCom {
 private:
   bool is_parent;
@@ -25,17 +23,17 @@ private:
   int child_to_parent_pipe_in;
   int child_to_parent_pipe_out;
 
-  void tell(const int& pipe_to_tell, const string &message);
-  unique_ptr<string> listen(const int& pipe_to_listen);
+  void tell(const int& pipe_to_tell, const std::string &message);
+  std::unique_ptr<std::string> listen(const int& pipe_to_listen);
 public:
   InterCom();
   ~InterCom();
   void registerAsParent();
   void registerAsChild();
-  void tellParent(const string& message);
-  void tellChild(const string& message);
-  unique_ptr<string> listenToParent();
-  unique_ptr<string> listenToChild();
+  void tellParent(const std::string& message);
+  void tellChild(const std::string& message);
+  std::unique_ptr<std::string> listenToParent();
+  std::unique_ptr<std::string> listenToChild();
 };
 
 

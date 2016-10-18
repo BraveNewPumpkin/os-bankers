@@ -14,26 +14,24 @@
 #include "Process.h"
 #include "Bank.h"
 
-using namespace std;
-
 
 class InputParser {
 private:
-  ifstream& input;
-  smatch match; //holds matches if any found
-  unsigned int matchBareNum(const string& line);
+  std::ifstream& input;
+  std::smatch match; //holds matches if any found
+  unsigned int matchBareNum(const std::string& line);
   unsigned int parseNumResources();
   unsigned int parseNumProcesses();
-  unique_ptr<vector<unsigned int> > parseInstancesOfResources(const unsigned int& num_resources);
-  unique_ptr<vector<vector<unsigned int> > > parseDemands(const unsigned int& num_resources, const unsigned int& num_processes);
-  unique_ptr<vector<unique_ptr<Process> > > parseProcesses(const unsigned int& num_processes);
-  unique_ptr<Process> parseProcess();
+  std::unique_ptr<std::vector<unsigned int> > parseInstancesOfResources(const unsigned int& num_resources);
+  std::unique_ptr<std::vector<std::vector<unsigned int> > > parseDemands(const unsigned int& num_processes, const unsigned int& num_resources);
+  std::unique_ptr<std::vector<std::unique_ptr<Process> > > parseProcesses(const unsigned int& num_processes);
+  std::unique_ptr<Process> parseProcess(const unsigned int& index);
   void split(const std::string &s, char delim, std::vector<std::string> &elems);
   std::vector<std::string> split(const std::string &s, char delim);
 
 public:
-  InputParser(ifstream &input): input(input) {};
-  void parseInput(unique_ptr<Bank>& bank, unique_ptr<vector<unique_ptr<Process> > >& processes);
+  InputParser(std::ifstream &input): input(input) {};
+  void parseInput(std::unique_ptr<Bank>& bank, std::unique_ptr<std::vector<std::unique_ptr<Process> > >& processes);
 
 };
 

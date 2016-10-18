@@ -4,9 +4,8 @@
 
 #include "Resource.h"
 
-Resource::Resource(const int& num_instances) {
-  available = num_instances;
-  used = 0;
+Resource::operator std::string() const {
+  return "index: " + std::to_string(index) + " available: " + std::to_string(available) + " used: " + std::to_string(used);
 }
 
 unsigned int Resource::getAvailable() const {
@@ -19,7 +18,8 @@ unsigned int Resource::getUsed() const {
 
 void Resource::allocate(const unsigned int &num_instances) {
   if(available<num_instances) {
-    throw runtime_error("cannot allocate " + to_string(num_instances) + " instances of resource with only " + to_string(available) + " instances available");
+    throw std::runtime_error("cannot allocate " + std::to_string(num_instances) + " instances of resource with only "
+      + std::to_string(available) + " instances available");
   }
   available -= num_instances;
   used += num_instances;
@@ -27,8 +27,13 @@ void Resource::allocate(const unsigned int &num_instances) {
 
 void Resource::release(const unsigned int &num_instances) {
   if(used<num_instances) {
-    throw runtime_error("cannot release " + to_string(num_instances) + " instances of resource with only " + to_string(available) + " instances used");
+    throw std::runtime_error("cannot release " + std::to_string(num_instances) + " instances of resource with only "
+      + std::to_string(available) + " instances used");
   }
   available += num_instances;
   used -= num_instances;
+}
+
+unsigned int Resource::getIndex() const {
+  return index;
 }

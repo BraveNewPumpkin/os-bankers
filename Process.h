@@ -17,42 +17,48 @@
 
 #include "InterCom.h"
 
-using namespace std;
-
 class Process {
 private:
-  shared_ptr<InterCom> inter_com;
+  unsigned int index;
+  std::shared_ptr<InterCom> inter_com;
+  unsigned int id;
   unsigned int pid;
   unsigned int deadline;
   unsigned int processing_time;
-  vector<function<bool()> > instructions;
+  std::vector<std::function<bool()> > instructions;
 
   bool calculate(const unsigned int &ticks);
   bool useresources(const unsigned int &ticks);
-  bool request(vector<unsigned int> requested_resources);
-  bool release(vector<unsigned int> requested_resources);
+  bool request(std::vector<unsigned int> requested_resources);
+  bool release(std::vector<unsigned int> requested_resources);
 
-  bool resourceActions(const string& name, vector<unsigned int>& requested_resources);
-  bool processingActions(const string& name, const unsigned int &ticks);
+  bool resourceActions(const std::string& name, std::vector<unsigned int>& requested_resources);
+  bool processingActions(const std::string& name, const unsigned int &ticks);
 public:
-  Process() : inter_com(make_shared<InterCom>()) {};
+  Process(const unsigned int& index) : index(index), inter_com(std::make_shared<InterCom>()) {};
+
+  operator std::string() const;
+
   int run();
 
   enum class Instruction {calculate, useresources, request, release};
-  unique_ptr<string> instructionsToString(Instruction instruction);
-  Instruction stringToInstruction(const string& name);
+  std::unique_ptr<std::string> instructionsToString(Instruction instruction);
+  Instruction stringToInstruction(const std::string& name);
 
   void pushInstruction(Instruction instruction, const unsigned int& ticks);
-  void pushInstruction(Instruction instruction, vector<unsigned int> requested_resources);
+  void pushInstruction(Instruction instruction, std::vector<unsigned int> requested_resources);
 
+
+  unsigned int getIndex() const;
+  unsigned int getId() const;
+  void setId(const unsigned int& id);
   unsigned int getPid() const;
   void setPid(const unsigned int pid);
   unsigned int getDeadline() const;
   void setDeadline(const unsigned int deadline);
   unsigned int getProcessingTime() const;
   void setProcessingTime(const unsigned int processing_time);
-  shared_ptr<InterCom> getInterCom();
-
+  std::shared_ptr<InterCom> getInterCom();
 };
 
 

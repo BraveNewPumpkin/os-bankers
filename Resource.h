@@ -7,18 +7,19 @@
 
 #include <string>
 
-using namespace std;
-
 class Resource {
 private:
+  unsigned int index;
   unsigned int available;
   unsigned int used;
 public:
-  Resource(const int& num_instances);
+  Resource(const unsigned int& index, const unsigned int& num_instances): index(index), available(num_instances), used(0) {};
+  operator std::string() const;
   unsigned int getAvailable() const;
   unsigned int getUsed() const;
   void allocate(const unsigned int& num_instances);
   void release(const unsigned int& num_instances);
+  unsigned int getIndex() const;
 };
 
 

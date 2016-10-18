@@ -10,10 +10,10 @@ InterCom::InterCom() {
   int child_to_parent[2];
   int parent_to_child[2];
   if(pipe(child_to_parent) == -1){
-    throw runtime_error("failed to open child_to_parent pipe: " + string(strerror(errno)));
+    throw std::runtime_error("failed to open child_to_parent pipe: " + std::string(strerror(errno)));
   }
   if(pipe(parent_to_child) == -1){
-    throw runtime_error("failed to open parent_to_child pipe: " + string(strerror(errno)));
+    throw std::runtime_error("failed to open parent_to_child pipe: " + std::string(strerror(errno)));
   }
 
   child_to_parent_pipe_in = child_to_parent[1];
@@ -25,10 +25,10 @@ InterCom::InterCom() {
 void InterCom::registerAsParent() {
   is_parent = true;
   if(close(child_to_parent_pipe_in) == -1){
-    throw runtime_error("failed to close child_to_parent_pipe_in: " + string(strerror(errno)));
+    throw std::runtime_error("failed to close child_to_parent_pipe_in: " + std::string(strerror(errno)));
   }
   if(close(parent_to_child_pipe_out) == -1){
-    throw runtime_error("failed to close parent_to_child_pipe_out: " + string(strerror(errno)));
+    throw std::runtime_error("failed to close parent_to_child_pipe_out: " + std::string(strerror(errno)));
   }
   is_ready = true;
 }
@@ -37,10 +37,10 @@ void InterCom::registerAsParent() {
 void InterCom::registerAsChild() {
   is_parent = false;
   if(close(child_to_parent_pipe_out) == -1){
-    throw runtime_error("failed to close child_to_parent_pipe_out: " + string(strerror(errno)));
+    throw std::runtime_error("failed to close child_to_parent_pipe_out: " + std::string(strerror(errno)));
   }
   if(close(parent_to_child_pipe_in) == -1){
-    throw runtime_error("failed to close parent_to_child_pipe_in: " + string(strerror(errno)));
+    throw std::runtime_error("failed to close parent_to_child_pipe_in: " + std::string(strerror(errno)));
   }
   is_ready = true;
 }
@@ -49,95 +49,94 @@ InterCom::~InterCom() {
   if(is_ready){
     if(is_parent){
       if(close(child_to_parent_pipe_out) == -1){
-        throw runtime_error("failed to close child_to_parent_pipe_out: " + string(strerror(errno)));
+        throw std::runtime_error("failed to close child_to_parent_pipe_out: " + std::string(strerror(errno)));
       }
       child_to_parent_pipe_out = -2;
       if(close(parent_to_child_pipe_in) == -1){
-        throw runtime_error("failed to close parent_to_child_pipe_in: " + string(strerror(errno)));
+        throw std::runtime_error("failed to close parent_to_child_pipe_in: " + std::string(strerror(errno)));
       }
       parent_to_child_pipe_in = -2;
     }else{
       if(close(child_to_parent_pipe_in) == -1){
-        throw runtime_error("failed to close child_to_parent_pipe_in: " + string(strerror(errno)));
+        throw std::runtime_error("failed to close child_to_parent_pipe_in: " + std::string(strerror(errno)));
       }
       child_to_parent_pipe_in = -2;
       if(close(parent_to_child_pipe_out) == -1){
-        throw runtime_error("failed to close parent_to_child_pipe_out: " + string(strerror(errno)));
+        throw std::runtime_error("failed to close parent_to_child_pipe_out: " + std::string(strerror(errno)));
       }
       parent_to_child_pipe_out = -2;
     }
   }else{
     if(close(child_to_parent_pipe_in) == -1){
-      throw runtime_error("failed to close child_to_parent_pipe_in: " + string(strerror(errno)));
+      throw std::runtime_error("failed to close child_to_parent_pipe_in: " + std::string(strerror(errno)));
     }
     child_to_parent_pipe_in = -3;
     if(close(child_to_parent_pipe_out) == -1){
-      throw runtime_error("failed to close child_to_parent_pipe_out: " + string(strerror(errno)));
+      throw std::runtime_error("failed to close child_to_parent_pipe_out: " + std::string(strerror(errno)));
     }
     child_to_parent_pipe_out = -3;
     if(close(parent_to_child_pipe_in) == -1){
-      throw runtime_error("failed to close parent_to_child_pipe_in: " + string(strerror(errno)));
+      throw std::runtime_error("failed to close parent_to_child_pipe_in: " + std::string(strerror(errno)));
     }
     parent_to_child_pipe_in = -3;
     if(close(parent_to_child_pipe_out) == -1){
-      throw runtime_error("failed to close parent_to_child_pipe_out: " + string(strerror(errno)));
+      throw std::runtime_error("failed to close parent_to_child_pipe_out: " + std::string(strerror(errno)));
     }
     parent_to_child_pipe_out = -3;
   }
 }
 
-void InterCom::tellChild(const string &message) {
+void InterCom::tellChild(const std::string &message) {
   if(!is_parent){
-    throw runtime_error("attempting to tell child as child");
+    throw std::runtime_error("attempting to tell child as child");
   }
   tell(parent_to_child_pipe_in, message);
 }
 
 
-void InterCom::tellParent(const string &message) {
+void InterCom::tellParent(const std::string &message) {
   if(is_parent){
-    throw runtime_error("attempting to tell parent as parent");
+    throw std::runtime_error("attempting to tell parent as parent");
   }
   tell(child_to_parent_pipe_in, message);
 }
 
-void InterCom::tell(const int& pipe_to_tell, const string &message){
+void InterCom::tell(const int& pipe_to_tell, const std::string &message){
   if(message.size() > BUFFER_SIZE){
-    throw runtime_error("attempting to write " + to_string(message.size()) + " bytes to " + to_string(BUFFER_SIZE) + " byte buffer");
+    throw std::runtime_error("attempting to write " + std::to_string(message.size()) + " bytes to " + std::to_string(BUFFER_SIZE) + " byte buffer");
   }
   ssize_t result;
   do {
     result = write(pipe_to_tell, message.c_str(), BUFFER_SIZE);
     //ignore EINTR errors as they are apparently no big deal and indicate we should retry
     if (result == -1 && errno != EINTR) {
-      throw runtime_error("failed to write string to pipe: " + string(strerror(errno)));
+      throw std::runtime_error("failed to write string to pipe: " + std::string(strerror(errno)));
     }
   } while(result == -1);
 }
 
-unique_ptr<string> InterCom::listenToChild() {
+std::unique_ptr<std::string> InterCom::listenToChild() {
   if(!is_parent){
-    throw runtime_error("attempting to listen to child as child");
+    throw std::runtime_error("attempting to listen to child as child");
   }
   return listen(child_to_parent_pipe_out);
 }
 
-unique_ptr<string> InterCom::listenToParent() {
+std::unique_ptr<std::string> InterCom::listenToParent() {
   if(is_parent){
-    throw runtime_error("attempting to listen to parent as parent");
-  }
+    throw std::runtime_error("attempting to listen to parent as parent"); }
   return listen(parent_to_child_pipe_out);
 }
 
-unique_ptr<string> InterCom::listen(const int &pipe_to_listen) {
+std::unique_ptr<std::string> InterCom::listen(const int &pipe_to_listen) {
   char buffer[BUFFER_SIZE];
   ssize_t result;
   do{
     result = read(pipe_to_listen, buffer, BUFFER_SIZE);
     //ignore EINTR errors as they are apparently no big deal and indicate we should retry
     if (result == -1 && errno != EINTR){
-      throw runtime_error("failed to read buffer from pipe: " + string(strerror(errno)));
+      throw std::runtime_error("failed to read buffer from pipe: " + std::string(strerror(errno)));
     }
   }while(result == -1);
-  return make_unique<string>(buffer);
+  return std::make_unique<std::string>(buffer);
 }

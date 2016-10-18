@@ -18,12 +18,6 @@
 
 using namespace std;
 
-bool bankers(unique_ptr<Process>& process, const Process::Instruction& instruction, const vector<unsigned int>& args){
-  //TODO
-
-  return true;
-}
-
 
 int main(int argc, char* argv[]){
   try {
@@ -79,7 +73,7 @@ int main(int argc, char* argv[]){
       auto inter_com = process->getInterCom();
       inter_com->tellChild("run");
       unique_ptr<string> response = inter_com->listenToChild();
-      cout << "instruction from child (PID: " << process->getPid() << "): " << *response << endl;
+      cout << "instruction from child (" << string(*process) << "): " << *response;
       regex_search(*response, matches, instruction_regex);
       string instruction_string(matches[1].str());
       Process::Instruction instruction = process->stringToInstruction(instruction_string);
@@ -87,15 +81,17 @@ int main(int argc, char* argv[]){
       for_each(matches.begin()+2, matches.end(), [&args](const string& arg){
         args.push_back((unsigned int)stoul(arg));
       });
-      if(bankers(process, instruction, args)){
+      if(bank->requestApproval(process, instruction, args)){
         inter_com->tellChild("success");
+        cout << " was successful" << endl;
         response = inter_com->listenToChild();
-        unsigned int clicks_elapsed = stoul(*response);
+        unsigned int clicks_elapsed = (unsigned int)stoul(*response);
         clock += clicks_elapsed;
         process->setProcessingTime(process->getProcessingTime() - clicks_elapsed);
         scheduler.processRan();
       }else{
         inter_com->tellChild("failure");
+        cout << " failed" << endl;
         scheduler.processBlocked();
         clock++;
       }
