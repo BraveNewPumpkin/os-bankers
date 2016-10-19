@@ -95,7 +95,7 @@ std::unique_ptr<Process> InputParser::parseProcess(const unsigned int& index) {
       process->pushInstruction(Process::Instruction::useresources, duration);
     }else if(std::regex_search(line, match, request_parser)){
       std::vector<unsigned int> requested_resources;
-      std::vector<std::string> tokens = split(match.str(1),',');
+      std::vector<std::string> tokens = StrOp::split(',', match.str(1));
       for(const std::string& token: tokens){
         const unsigned int num_instances = std::stoul(token);
         requested_resources.push_back(num_instances);
@@ -103,7 +103,7 @@ std::unique_ptr<Process> InputParser::parseProcess(const unsigned int& index) {
       process->pushInstruction(Process::Instruction::request, requested_resources);
     }else if(std::regex_search(line, match, release_parser)){
       std::vector<unsigned int> requested_resources;
-      std::vector<std::string> tokens = split(match.str(1),',');
+      std::vector<std::string> tokens = StrOp::split(',', match.str(1));
       for(const std::string& token: tokens){
         const unsigned int num_instances = std::stoul(token);
         requested_resources.push_back(num_instances);

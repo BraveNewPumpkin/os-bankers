@@ -63,7 +63,7 @@ bool Process::processingActions(const std::string &name, const unsigned int &tic
 }
 
 bool Process::resourceActions(const std::string& name, std::vector<unsigned int>& requested_resources){
-  //TODO put join in here
+  std::string resources_string = StrOp::join(" ", requested_resources);
   inter_com->tellParent(name + " " + resources_string);
   std::unique_ptr<std::string> result = inter_com->listenToParent();
   //return true if successfully ran as reported by parent and false otherwise

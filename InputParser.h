@@ -13,6 +13,7 @@
 
 #include "Process.h"
 #include "Bank.h"
+#include "StrOp.h"
 
 
 class InputParser {

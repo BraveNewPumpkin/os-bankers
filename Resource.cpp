@@ -18,8 +18,7 @@ unsigned int Resource::getUsed() const {
 
 void Resource::allocate(const unsigned int &num_instances) {
   if(available<num_instances) {
-    throw std::runtime_error("cannot allocate " + std::to_string(num_instances) + " instances of resource with only "
-      + std::to_string(available) + " instances available");
+    throw std::runtime_error("cannot allocate " + std::to_string(num_instances) + " instances of resource: (" + std::string(*this) + ")");
   }
   available -= num_instances;
   used += num_instances;

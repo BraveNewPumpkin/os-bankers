@@ -14,6 +14,20 @@ std::unique_ptr<Resource>& Bank::getResource(const int& resource_id) {
   return resources[resource_id];
 }
 
+void Bank::allocateResources(const std::unique_ptr<Process> &process, std::vector<unsigned int> allocated_resources) {
+  std::vector<unsigned int>::iterator allocated_resources_iter;
+  std::vector<std::unique_ptr<Resource> >::iterator resources_iter;
+  for(
+     allocated_resources_iter = allocated_resources.begin(), resources_iter = resources.begin();
+     allocated_resources_iter != allocated_resources.end() && resources_iter != resources.end();
+     ++allocated_resources_iter, ++resources_iter
+     ) {
+    const unsigned int process_index = process->getIndex();
+    debits->at(process_index).at((*resources_iter)->getIndex()) += *allocated_resources_iter;
+    (*resources_iter)->allocate(*allocated_resources_iter);
+  }
+}
+
 bool Bank::releaseResources(const std::unique_ptr<Process>& process, std::vector<unsigned int> released_resources) {
   std::vector<unsigned int>::iterator released_resources_iter;
   std::vector<std::unique_ptr<Resource> >::iterator resources_iter;
@@ -24,9 +38,13 @@ bool Bank::releaseResources(const std::unique_ptr<Process>& process, std::vector
      ){
     const unsigned int process_index = process->getIndex();
     if(debits->at(process_index).at((*resources_iter)->getIndex()) >= *released_resources_iter){
+      debits->at(process_index).at((*resources_iter)->getIndex()) -= *released_resources_iter;
       (*resources_iter)->release(*released_resources_iter);
     }else{
-      throw std::runtime_error("attempting to release more resources than allocated for process_index: " + std::to_string(process_index));
+      std::string error_string("attempting to release more resources than allocated for process_index: ");
+      error_string += std::to_string(process_index) + " releasing: " + StrOp::join(",", released_resources);
+      error_string += " debits: " + StrOp::join(",", debits->at(process_index));
+      throw std::runtime_error(error_string);
     }
   }
   return true;
@@ -56,6 +74,9 @@ bool Bank::requestApproval(const std::unique_ptr<Process>& process, const Proces
       break;
     case Process::Instruction::request:
       approval = bankers(process, args);
+      if(approval) {
+        allocateResources(process, args);
+      }
       break;
   }
 
@@ -80,8 +101,11 @@ bool Bank::bankers(const std::unique_ptr<Process>& process, std::vector<unsigned
 
     if (need < requested_resource_amount) {
       std::ostringstream error_sstream;
-      error_sstream << "process (" << std::string(*process) << ") requested more than declared maximum of resource (";
-      error_sstream << std::string(**resources_iter) << ")";
+      error_sstream << "process (" << std::string(*process) << ") requested more than declared maximum claim: "
+                    << claims->at(process_index).at(resource_index) << " - currently used: "
+                    << debits->at(process_index).at(resource_index) << " = need: " << std::to_string(need)
+                    << " < requested amount: " << requested_resource_amount << " of resource: ("
+                    << std::string(**resources_iter) << ")";
       throw std::runtime_error(error_sstream.str());
     }
     if(requested_resource_amount > resource_available_amount){

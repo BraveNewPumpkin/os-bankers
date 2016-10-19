@@ -23,6 +23,7 @@ public:
   //creates and adds a resource with given number of instances and returns the id
   const unsigned int addResource(const unsigned int& num_instances);
   bool releaseResources(const std::unique_ptr<Process>& process, std::vector<unsigned int> resources);
+  void allocateResources(const std::unique_ptr<Process>& process, std::vector<unsigned int> resources);
   void releaseAllResourcesForProcess(const std::unique_ptr<Process>& process);
   std::unique_ptr<Resource>& getResource(const int& resource_id);
 

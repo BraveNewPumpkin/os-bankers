@@ -10,12 +10,12 @@
 #include <functional>
 #include <utility>
 #include <memory>
-#include <sstream>
 #include <cstring>
 #include <cerrno>
 #include <unistd.h>
 
 #include "InterCom.h"
+#include "StrOp.h"
 
 class Process {
 private:
