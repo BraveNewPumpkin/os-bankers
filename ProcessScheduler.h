@@ -16,7 +16,6 @@ class ProcessScheduler {
 protected:
   std::unique_ptr<std::vector<std::unique_ptr<Process> > > processes;
 public:
-//  ProcessScheduler(unique_ptr<vector<unique_ptr<Process> > > &processes) : processes(processes) {};
   //pure virtual method
   virtual std::unique_ptr<Process>& getProcessToRun(std::unique_ptr<Bank>& bank) = 0;
   virtual bool allProcessesFinished() = 0;

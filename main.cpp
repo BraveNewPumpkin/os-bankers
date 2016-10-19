@@ -13,6 +13,7 @@
 
 #include "InputParser.h"
 #include "EdfSjfScheduler.h"
+#include "EdfLjfScheduler.h"
 //#include "Bank.h"
 //#include "Process.h"
 
@@ -26,18 +27,19 @@ int main(int argc, char* argv[]){
     string program_name = argv[0];
     //define closure for printing out usage
     auto printUsage = [&program_name]() {
-      cout << "usage: " << program_name << " /path/to/input/file.txt" << endl;
+      cout << "usage: " << program_name << " SJF|LJF /path/to/input/file.txt" << endl;
     };
     //check number of parameters
-    if (argc < 2) {
-      cerr << "must pass path to input file as 1rst argument" << endl;
+    if (argc < 3) {
+      cerr << "must pass path to input file as 2nd argument" << endl;
       printUsage();
       return EXIT_FAILURE;
     }
-    string input_filepath = argv[1];
+    string tie_breaking_strategy = argv[1];
+    string input_filepath = argv[2];
     //check if asking for help
     regex help_arg("^-{1,2}[Hh](?:elp)?$");
-    if (regex_match(input_filepath, help_arg)) {
+    if (regex_match(tie_breaking_strategy, help_arg) || regex_match(input_filepath, help_arg)) {
       printUsage();
       return EXIT_SUCCESS;
     }
@@ -61,7 +63,16 @@ int main(int argc, char* argv[]){
         return EXIT_SUCCESS;
       }
     }
-    EdfSjfScheduler scheduler(processes);
+    unique_ptr<EdfScheduler> scheduler;
+    if(tie_breaking_strategy == "SJF") {
+      scheduler = make_unique<EdfSjfScheduler>(processes);
+    } else if (tie_breaking_strategy == "LJF"){
+      scheduler = make_unique<EdfLjfScheduler>(processes);
+    } else{
+      cerr << "must pass tie breaking strategy of SJF or LJF as 1rst argument" << endl;
+      printUsage();
+      return EXIT_FAILURE;
+    }
     bool all_done = false;
     unsigned int clock = 0;
 
@@ -69,7 +80,7 @@ int main(int argc, char* argv[]){
     smatch matches;
 
     while(!all_done){
-      unique_ptr<Process>& process = scheduler.getProcessToRun(bank);
+      unique_ptr<Process>& process = scheduler->getProcessToRun(bank);
       auto inter_com = process->getInterCom();
       inter_com->tellChild("run");
       unique_ptr<string> response = inter_com->listenToChild();
@@ -90,19 +101,19 @@ int main(int argc, char* argv[]){
         unsigned int clicks_elapsed = (unsigned int)stoul(*response);
         clock += clicks_elapsed;
         process->setProcessingTime(process->getProcessingTime() - clicks_elapsed);
-        scheduler.processRan();
+        scheduler->processRan();
       }else{
         inter_com->tellChild("failure");
         cout << " failed" << endl;
-        scheduler.processBlocked();
+        scheduler->processBlocked();
         clock++;
       }
       //check deadlines & report any newly passed ones
-      unique_ptr<vector<unsigned int> > passed_deadlines = scheduler.getDeadlinesPassed(clock);
+      unique_ptr<vector<unsigned int> > passed_deadlines = scheduler->getDeadlinesPassed(clock);
       for(unsigned int passed_deadline: *passed_deadlines){
         cout << "deadline passed for id: " + to_string(passed_deadline) << endl;
       }
-      all_done = scheduler.allProcessesFinished();
+      all_done = scheduler->allProcessesFinished();
     }
   }catch (const regex_error& e){
     cerr << "unhandled std::regex_error caught in main: " << e.what() << " code: " << e.code()<< endl;

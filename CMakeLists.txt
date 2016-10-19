@@ -14,5 +14,5 @@ project(os_bankers)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
-set(SOURCE_FILES main.cpp InputParser.cpp Process.cpp Bank.cpp Resource.cpp InterCom.cpp EdfSjfScheduler.cpp StrOp.cpp StrOp.h)
+set(SOURCE_FILES main.cpp InputParser.cpp Process.cpp Bank.cpp Resource.cpp InterCom.cpp EdfSjfScheduler.cpp StrOp.cpp StrOp.h EdfScheduler.cpp EdfScheduler.h EdfLjfScheduler.cpp EdfLjfScheduler.h)
 add_executable(os_bankers ${SOURCE_FILES})
